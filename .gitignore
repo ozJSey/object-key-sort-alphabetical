@@ -3,5 +3,3 @@ out
 *.vsix
 .vscode-test/
 
-# Manual testing file - DO NOT COMMIT (user actively testing on it)
-MANUAL_TEST.ts
