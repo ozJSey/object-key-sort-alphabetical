@@ -415,61 +415,37 @@ MIT
 
 ## Changelog
 
-### 1.4.0 - The Function Fix Release 🎯
-
-- 🐛 **CRITICAL FIX**: Function bodies with semicolons no longer break sorting
-- ✨ Removed semicolon from property separator detection (only use commas)
-- ✨ Works with ANY function body length (1 line or 1000 lines)
-- ✨ Supports all function types: arrow functions, regular functions, method shorthand, async
-- 📝 Added comprehensive function examples to README
-- 🧪 Verified: Functions with multiple parameters and complex bodies work perfectly
-
-### 1.3.6
-
-- Fix: Function bodies no longer split on semicolons
-
-### 1.3.5
-
-- Fix: Ignore comments now work correctly (was missing // prefix)
-
-### 1.3.4
-
-- Fix: JSON files now sort correctly (package.json, tsconfig.json, etc.)
-
-### 1.3.3
-
-- Fix: Arrow function and regular function bodies protected from sorting
-
-### 1.3.0 - The "Apartment Building" Release 🏢
-
-- 🎯 **BREAKING**: Removed array sorting - arrays are never sorted as order matters for execution and data structure
-- ✨ **NEW**: Object destructuring patterns are now sorted (e.g., `const { z, a } = obj` → `const { a, z } = obj`)
-- ✨ **NEW**: TypeScript generic types fully supported (`Record<string, string>`, `Array<Type>`, etc.)
-- ✨ Complete rewrite using the "apartment building" approach - pure string position swapping
-- ✨ Perfect formatting preservation - all whitespace, newlines, commas, and semicolons stay exactly as written
-- ✨ Smart context detection - only sorts object literals, interfaces, types, imports, and destructuring
-- ✨ Depth tracking for `{}`, `[]`, `()`, and `<>` - handles nested structures perfectly
-- 🐛 Fixed: Array destructuring is never sorted (positional meaning preserved)
-- 🐛 Fixed: Function parameters are never sorted (positional arguments preserved)
-- 🐛 Fixed: Class bodies are never sorted (structure and syntax preserved)
-- 🐛 Fixed: Arrays preserve execution order and data structure
-- 🐛 Fixed: Complex type annotations with commas inside generics
-- 📝 Comprehensive documentation with examples and technical details
-
 ### 1.2.0
 
-- Major fix release with improved sorting logic
+**🎯 Critical Fix: TypeScript Generics & Arrow Functions**
+- ✅ Fixed: `Map<string, any>` and other generics now preserved correctly
+- ✅ Fixed: Arrow functions `() => {}` no longer break depth tracking
+- 🧠 Smart `>` detection: differentiates between `=>` and generic `>`
+- 🧪 Added unit tests for generics to prevent regression
+- 📦 All tests passing: 3/3 ✓
 
-### 1.0.1
+### 1.1.0
 
-- Added manual test files and .spec. files
+**🚀 Major Fix: Object Detection**
+- ✅ Fixed: Objects with arrow function properties now sort correctly
+- ✅ Example: `{ onChange: () => {}, onClick: () => {} }` now works
+- 🧠 Structural content-based detection (inspired by Lodash)
+- 🧪 Comprehensive unit testing added
+- 📝 Improved manual test coverage
 
 ### 1.0.0
 
-- Production ready with extensive testing
-- Complete feature set
-- Comprehensive documentation
-- Release candidate
+**🎉 Initial Release**
+- ✅ Object property sorting (alphabetical + priority)
+- ✅ Import/Export sorting
+- ✅ Object destructuring sorting
+- ✅ Nested object support (recursive)
+- ✅ TypeScript interface/type support
+- ✅ Ignore comments (`// auto-sort-ignore`)
+- ✅ Priority: `__typename`, `id`, `_id` always first
+- ✅ Format preservation (whitespace, newlines, comments)
+- ✅ Return statement objects
+- ✅ JSON file support
 
 ### 0.9.4
 
