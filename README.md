@@ -2,6 +2,8 @@
 
 **Automatically sorts objects and flat arrays alphabetically on save, with smart prioritization for `__typename`, `id`, and `_id`.**
 
+![Demo](assets/demo.gif)
+
 ## Features
 
 - ✅ **Automatic sorting on save** - Objects, interfaces, types, and arrays are sorted when you save
@@ -271,16 +273,74 @@ MIT
 
 ## Changelog
 
-### "0.9.0"
+### 0.9.1
 
-- Initial release
-- Object property sorting with priority (`__typename`, `id`, `_id`)
-- TypeScript interface and type support
-- Array sorting for primitives
-- Nested object sorting
-- Ignore comment support
-- Format preservation
+- Production-ready stability
+- Full documentation and examples
+
+### 0.9.0
+
+- Release candidate
+- Performance optimizations
+- Enhanced error handling
+- Improved formatting preservation
+
+### 0.8.0
+
+- Added ignore comment support (`// auto-sort-ignore`)
+- Configuration options for imports and sorting
+- Bug fixes for edge cases
+
+### 0.7.0
+
+- Nested object sorting (recursive)
+- Flat array sorting for primitives
+- TypeScript type definitions support
+
+### 0.6.0
+
+- Import statement sorting
+- Shorthand property support
+- String key handling improvements
+
+### 0.5.0
+
+- Priority sorting system (`__typename`, `id`, `_id`)
+- GraphQL and MongoDB compatibility
+- Configurable sorting rules
+
+### 0.4.0
+
+- TypeScript interface support with semicolons
+- Multi-line object handling
+- Format preservation enhancements
+
+### 0.3.0
+
+- Complex object value support (functions, nested objects)
+- Improved parsing algorithm
+- Better whitespace handling
+
+### 0.2.0
+
+- Basic object sorting functionality
+- Single-line and multi-line support
+- Configuration options
+
+### 0.1.0
+
+- Core sorting logic implementation
+- VSCode integration
+- Save event handling
+
+### 0.0.1
+
+- Initial proof of concept
+- Basic alphabetical sorting
 
 ## Issues & Feedback
 
-ozgur.seyidoglu.sw@gmail.com
+📧 [ozgur.seyidoglu.sw@gmail.com](mailto:ozgur.seyidoglu.sw@gmail.com)  
+🐛 [GitHub Issues](https://github.com/ozJSey/object-key-sort-alphabetical/issues)  
+⭐ [Star on GitHub](https://github.com/ozJSey/object-key-sort-alphabetical)
+

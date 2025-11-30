@@ -2,7 +2,7 @@
   "name": "object-sort-alphabetical",
   "displayName": "Object Sort Alphabetical",
   "description": "Automatically sort object properties alphabetically on save",
-  "version": "0.9.1",
+  "version": "0.9.4",
   "publisher": "ozJSey",
   "icon": "assets/icon.png",
   "engines": {
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.x",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^6.x",
     "@typescript-eslint/parser": "^6.x",
     "@vscode/vsce": "^2.22.0",
