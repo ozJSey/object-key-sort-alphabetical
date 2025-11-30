@@ -3,7 +3,8 @@ import * as vscode from 'vscode';
 const _isSortableContext = (text: string, bracePos: number) => {
     let i = bracePos - 1;
     while (i >= 0 && /[\s\n]/.test(text[i])) i--;
-    if (i < 0) return false;
+    
+    if (i < 0) return true;
     
     if (text[i] === ')') return false;
     
