@@ -39,8 +39,9 @@ export const _isObjectLiteral = (content: string) => {
         }
     }
     
-    const isObject = (colonCount > 0 && colonCount >= commaCount) || 
-                     (commaCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*,/.test(trimmed));
+    const isObject = (colonCount > 0 && (colonCount >= commaCount || colonCount >= semicolonCount)) || 
+                     (commaCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*,/.test(trimmed)) ||
+                     (semicolonCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*:/.test(trimmed));
     
     return isObject;
 };
@@ -132,7 +133,7 @@ const _findPropertyRanges = (content: string) => {
             if (c === '}' || c === ']' || c === ')') depth--;
             if (c === '>' && prev !== '=') depth--;
             
-            if (c === ',' && depth === 0) {
+            if ((c === ',' || c === ';') && depth === 0) {
                 ranges.push({ start: propStart, end: i });
                 
                 propStart = i + 1;
