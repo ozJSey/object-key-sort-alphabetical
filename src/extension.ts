@@ -1,32 +1,5 @@
 import * as vscode from 'vscode';
 
-export const activate = (context: vscode.ExtensionContext) => {
-    let isSorting = false;
-
-    const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
-        if (isSorting) return;
-
-        const config = vscode.workspace.getConfiguration('objectSortAlphabetical');
-        if (!config.get<boolean>('enabled', true) || !config.get<boolean>('sortOnSave', true)) return;
-
-        const supported = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'json', 'jsonc'];
-        if (!supported.includes(document.languageId)) return;
-
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || editor.document.uri.toString() !== document.uri.toString()) return;
-
-        const edits = _findBlocksAndSort(document.getText(), document);
-        if (!edits.length) return;
-
-        isSorting = true;
-        await _applyEdits(editor, edits);
-        await document.save();
-        isSorting = false;
-    });
-
-    context.subscriptions.push(saveListener);
-};
-
 const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
     const edits: vscode.TextEdit[] = [];
     const blocks: Array<{ start: number; end: number; depth: number; isArray: boolean }> = [];
@@ -254,6 +227,33 @@ const _applyEdits = async (editor: vscode.TextEditor, edits: vscode.TextEdit[]) 
         await editor.edit(builder => builder.replace(edit.range, edit.newText), 
             { undoStopBefore: false, undoStopAfter: false });
     }, Promise.resolve());
+};
+
+export const activate = (context: vscode.ExtensionContext) => {
+    let isSorting = false;
+
+    const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
+        if (isSorting) return;
+
+        const config = vscode.workspace.getConfiguration('objectSortAlphabetical');
+        if (!config.get<boolean>('enabled', true) || !config.get<boolean>('sortOnSave', true)) return;
+
+        const supported = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'json', 'jsonc'];
+        if (!supported.includes(document.languageId)) return;
+
+        const editor = vscode.window.activeTextEditor;
+        if (!editor || editor.document.uri.toString() !== document.uri.toString()) return;
+
+        const edits = _findBlocksAndSort(document.getText(), document);
+        if (!edits.length) return;
+
+        isSorting = true;
+        await _applyEdits(editor, edits);
+        await document.save();
+        isSorting = false;
+    });
+
+    context.subscriptions.push(saveListener);
 };
 
 export const deactivate = () => {};
