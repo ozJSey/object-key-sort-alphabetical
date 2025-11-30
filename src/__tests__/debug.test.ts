@@ -126,11 +126,12 @@ describe('Debug eventHandlers', () => {
         const result = _sortBlock(input);
         
         // Each property should keep its comment
-        expect(result).toContain('apiKey: "secret-key" // API authentication key');
+        // Note: all properties except the last one will have commas
+        expect(result).toContain('apiKey: "secret-key", // API authentication key');
         expect(result).toContain('enabled: true, // Feature flag');
         expect(result).toContain('id: "config-456", // Unique identifier');
         expect(result).toContain('retries: 3, // Number of retry attempts');
-        expect(result).toContain('timeout: 5000, // Maximum timeout in milliseconds');
+        expect(result).toContain('timeout: 5000 // Maximum timeout in milliseconds'); // Last property, no comma
         
         // Check order: id (priority), then apiKey, enabled, retries, timeout (alphabetical)
         const idPos = result.indexOf('id:');

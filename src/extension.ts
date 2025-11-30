@@ -130,9 +130,6 @@ const _findPropertyRanges = (content: string) => {
             if (c === '>' && prev !== '=') depth--;
             
             if (c === ',' && depth === 0) {
-                // Property ends at comma, but we need to check if there's an inline comment after it
-                let propEnd = i;
-                
                 // Look ahead after the comma for inline comment
                 let checkPos = i + 1;
                 // Skip spaces/tabs after comma
@@ -140,11 +137,15 @@ const _findPropertyRanges = (content: string) => {
                     checkPos++;
                 }
                 
-                // If we find //, include everything up to the newline as part of this property
+                let propEnd = i; // Default: up to (not including) the comma
+                
+                // If we find //, include comma + spaces + comment as part of this property
                 if (checkPos + 1 < content.length && content[checkPos] === '/' && content[checkPos + 1] === '/') {
                     // Find the end of the line
                     let lineEnd = content.indexOf('\n', checkPos);
                     if (lineEnd === -1) lineEnd = content.length;
+                    // Include everything from propStart up to (not including) the newline
+                    // This includes: property + comma + spaces + comment
                     propEnd = lineEnd;
                 }
                 
@@ -235,8 +236,34 @@ export const _sortBlock = (fullBlock: string) => {
     let lastEnd = 0;
     
     properties.forEach((prop, idx) => {
-        result += content.substring(lastEnd, prop.range.start);
-        result += sorted[idx].text;
+        const apartment = content.substring(lastEnd, prop.range.start);
+        result += apartment;
+        
+        // Add the sorted property text
+        let propText = sorted[idx].text;
+        
+        // If this is not the last property, ensure it has a comma
+        // (comments are already included in the text if present)
+        if (idx < properties.length - 1) {
+            // Check if the text already ends with a comma (before any comment)
+            const hasComma = /,\s*(\/\/.*)?$/.test(propText);
+            if (!hasComma) {
+                // Find where to insert the comma (before any comment)
+                const commentMatch = propText.match(/(\s*\/\/.*)$/);
+                if (commentMatch) {
+                    // Insert comma before the comment
+                    propText = propText.substring(0, commentMatch.index) + ',' + commentMatch[0];
+                } else {
+                    // No comment, just add comma at the end
+                    propText = propText + ',';
+                }
+            }
+        } else {
+            // Last property - remove trailing comma if present
+            propText = propText.replace(/,(\s*\/\/.*)?$/, '$1');
+        }
+        
+        result += propText;
         lastEnd = prop.range.end;
     });
     
