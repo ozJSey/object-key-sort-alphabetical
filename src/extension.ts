@@ -8,14 +8,15 @@ const _isSortableContext = (text: string, bracePos: number) => {
     
     if (text[i] === ')') return false;
     
+    if (text[i] === '>') {
+        if (i > 0 && text[i - 1] === '=') return false;
+        return false;
+    }
+    
     if (text[i] === '=') {
         if (i > 0 && text[i - 1] === '=') return false;
         if (i < text.length - 1 && text[i + 1] === '>') return false;
         return true;
-    }
-    
-    if (text[i] === '>') {
-        if (i > 0 && text[i - 1] === '=') return false;
     }
     
     if (text[i] === ':') return true;

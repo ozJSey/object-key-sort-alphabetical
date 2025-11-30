@@ -1,10 +1,10 @@
 # Object Sort Alphabetical
 
-**The most intelligent object sorting extension for VS Code. Automatically sorts objects, interfaces, types, imports, and destructuring patterns alphabetically on save - with perfect formatting preservation and smart prioritization for GraphQL.**
+**Automatically sorts objects, interfaces, types, imports, and destructuring patterns alphabetically on save - with perfect formatting preservation and smart prioritization for GraphQL.**
 
 ![Demo](assets/demo.gif)
 
-> 🏆 **What makes this special?** Unlike other formatters, we use the "apartment building" approach - we identify the structure (commas, newlines, spaces) and only swap the content, preserving your exact formatting. No opinionated formatting, no conflicts with your linter.
+> 🏆 **What makes this different?** We use the "apartment building" approach - we identify the structure (commas, newlines, spaces) and only swap the content, preserving your exact formatting. No opinionated formatting, no conflicts with your linter.
 
 ## ✨ Features
 
