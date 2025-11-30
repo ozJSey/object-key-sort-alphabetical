@@ -7,24 +7,24 @@
 // ============================================================================
 
 // Single-line imports (UNSORTED)
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { reduce, map, some, filter, forEach, every, find } from "lodash";
-import { monkey, zebra, apple, banana } from "animals";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { every, filter, find, forEach, map, reduce, some } from "lodash";
+import { apple, banana, monkey, zebra } from "animals";
 
 // Multi-line imports (UNSORTED)
 import {
-  ZebraComponent,
-  DeltaComponent,
   AlphaComponent,
+  BetaComponent,
+  DeltaComponent,
   GammaComponent,
-  BetaComponent
+  ZebraComponent
 } from "my-ui-library";
 
 import {
-  charlie,
-  zulu,
+  alpha,
   bravo,
-  alpha
+  charlie,
+  zulu
 } from "phonetic";
 
 // ============================================================================
@@ -65,23 +65,23 @@ interface NestedConfig {
 // ============================================================================
 
 const graphqlUser = {
-  name: "John Doe",
-  email: "john@example.com",
+  __typename: "User",
+  id: "user-123",
+  _id: "507f1f77bcf86cd799439011",
   age: 30,
   city: "New York",
-  _id: "507f1f77bcf86cd799439011",
+  email: "john@example.com",
   isActive: true,
-  id: "user-123",
-  __typename: "User"
+  name: "John Doe"
 };
 
 const anotherUser = {
-  zipCode: "12345",
-  age: 25,
-  name: "Jane",
+  __typename: "User",
   id: "user-456",
   _id: "mongo-456",
-  __typename: "User"
+  age: 25,
+  name: "Jane",
+  zipCode: "12345"
 };
 
 // ============================================================================
@@ -96,12 +96,12 @@ const lastName = "Smith";
 const age = 28;
 
 const shorthandObject = {
-  lastName,
-  firstName,
-  age,
-  _id,
+  __typename,
   id,
-  __typename
+  _id,
+  age,
+  firstName,
+  lastName
 };
 
 const zebra = "z";
@@ -109,11 +109,11 @@ const apple = "a";
 const monkey = "m";
 
 const anotherShorthand = {
-  zebra,
-  monkey,
-  apple,
   __typename,
-  id
+  id,
+  apple,
+  monkey,
+  zebra
 };
 
 // ============================================================================
@@ -121,6 +121,11 @@ const anotherShorthand = {
 // ============================================================================
 
 const nestedData = {
+  metadata: {
+    version: 1,
+    __typename: "Metadata",
+    created: "2024-01-01"
+  },
   user: {
     profile: {
       website: "example.com",
@@ -137,16 +142,10 @@ const nestedData = {
     name: "Bob",
     __typename: "User",
     id: "user-789"
-  },
-  metadata: {
-    version: 1,
-    __typename: "Metadata",
-    created: "2024-01-01"
   }
 };
 
 const moreNested = {
-  simple: "data",
   outer: {
     middle: "value",
     inner: {
@@ -155,46 +154,47 @@ const moreNested = {
       alpha: "a"
     },
     id: "outer-1"
-  }
+  },
+  simple: "data"
 };
 
 // ============================================================================
 // SECTION 6: SINGLE-LINE OBJECTS - Should be sorted
 // ============================================================================
 
-const singleLine = { zebra: 1, beta: 4, alpha: 2, __typename: "Single", id: 3 };
-const anotherSingle = { z: 1, m: 3, a: 2, id: 5, b: 4 };
+const singleLine = { __typename: "Single", id: 3, alpha: 2, beta: 4, zebra: 1 };
+const anotherSingle = { id: 5, a: 2, b: 4, m: 3, z: 1 };
 
 // ============================================================================
 // SECTION 7: STRING KEYS - Should be sorted
 // ============================================================================
 
 const config = {
-  timeout: 5000,
-  enabled: true,
-  "api-key": "secret-key-123",
   __typename: "Config",
   id: "config-1",
+  _id: "config-mongo-id",
+  "api-key": "secret-key-123",
   "base-url": "https://api.example.com",
+  enabled: true,
   "max-retries": 3,
-  _id: "config-mongo-id"
+  timeout: 5000
 };
 
 const settings = {
-  "z-index": 100,
   id: "settings-1",
   "a-value": "test",
-  "m-option": true
+  "m-option": true,
+  "z-index": 100
 };
 
 // ============================================================================
 // SECTION 8: OBJECT DESTRUCTURING - Should be sorted
 // ============================================================================
 
-const { zebra: z1, monkey: m1, alpha: a1 } = { alpha: 2, monkey: 3, zebra: 1 };
-const { lastName: ln, age: userAge, firstName: fn } = graphqlUser;
+const { alpha: a1, monkey: m1, zebra: z1 } = { alpha: 2, monkey: 3, zebra: 1 };
+const { age: userAge, firstName: fn, lastName: ln } = graphqlUser;
 
-function ComponentWithProps({ userId, onClose, theme, className }: any) {
+function ComponentWithProps({ className, onClose, theme, userId }: any) {
   return null;
 }
 
@@ -238,14 +238,14 @@ const componentProps = {
 // ============================================================================
 
 const dataWithArrays = {
+  __typename: "UserList",
+  id: "list-1",
+  tags: ["javascript", "typescript"],
+  total: 2,
   users: [
     { name: "Alice", id: "1" },
     { name: "Bob", id: "2" }
-  ],
-  tags: ["javascript", "typescript"],
-  total: 2,
-  __typename: "UserList",
-  id: "list-1"
+  ]
 };
 
 // ============================================================================
@@ -268,14 +268,14 @@ const apiClient = {
 };
 
 const withRegularFunction = {
-  zebra: "last",
+  alpha: "first",
   calculate: function(a: number, b: number) {
     return a + b;
   },
-  alpha: "first",
   process: function() {
     console.log("processing");
-  }
+  },
+  zebra: "last"
 };
 
 // ============================================================================
@@ -291,9 +291,9 @@ type ApiConfigWithGenerics = {
 };
 
 const configWithGenerics: Record<string, any> = {
-  zebra: "last",
   id: "config-123",
-  alpha: "first"
+  alpha: "first",
+  zebra: "last"
 };
 
 // ============================================================================
@@ -301,8 +301,6 @@ const configWithGenerics: Record<string, any> = {
 // ============================================================================
 
 const complexApiResponse = {
-  statusCode: 200,
-  message: "Success",
   data: {
     users: [
       {
@@ -323,6 +321,8 @@ const complexApiResponse = {
     __typename: "UserConnection",
     total: 2
   },
+  message: "Success",
+  statusCode: 200,
   timestamp: Date.now()
 };
 
@@ -332,29 +332,29 @@ const complexApiResponse = {
 
 function getUserData() {
   return {
-    name: "John",
-    email: "john@example.com",
-    age: 30,
     __typename: "User",
-    id: "user-123"
+    id: "user-123",
+    age: 30,
+    email: "john@example.com",
+    name: "John"
   };
 }
 
 const getConfig = () => {
   return {
-    timeout: 5000,
+    apiKey: "secret",
     enabled: true,
     retries: 3,
-    apiKey: "secret"
+    timeout: 5000
   };
 };
 
 async function fetchData() {
   const response = await fetch("/api/data");
   return {
-    statusCode: 200,
+    data: await response.json(),
     message: "Success",
-    data: await response.json()
+    statusCode: 200
   };
 }
 
@@ -363,12 +363,12 @@ async function fetchData() {
 // ============================================================================
 
 export {
-  userSettings,
+  apiClient,
+  applicationConfig,
+  complexApiResponse,
   eventHandlers,
   graphqlUser,
-  complexApiResponse,
-  applicationConfig,
-  apiClient
+  userSettings
 };
 
 // ============================================================================
@@ -382,7 +382,7 @@ const manualOrder1 = { zebra: 1, apple: 2, monkey: 3, banana: 4 };
 const manualOrder2 = { z: 5, a: 6, m: 7, b: 8 };
 
 // This one WILL be sorted (no ignore comment)
-const willBeSorted = { zebra: 9, monkey: 11, apple: 10, banana: 12 };
+const willBeSorted = { apple: 10, banana: 12, monkey: 11, zebra: 9 };
 
 // ============================================================================
 // SECTION 17: EMPTY & SINGLE PROPERTY - Should NOT be modified
@@ -490,18 +490,18 @@ class UserService {
 // ============================================================================
 
 const packageConfig = {
-  "version": "1.0.0",
+  "dependencies": {
+    "react": "^18.0.0",
+    "lodash": "^4.17.21"
+  },
+  "description": "A test package",
+  "name": "my-package",
   "scripts": {
     "test": "jest",
     "build": "tsc",
     "start": "node index.js"
   },
-  "name": "my-package",
-  "dependencies": {
-    "react": "^18.0.0",
-    "lodash": "^4.17.21"
-  },
-  "description": "A test package"
+  "version": "1.0.0"
 };
 
 // ============================================================================
@@ -510,11 +510,11 @@ const packageConfig = {
 
 const dynamicKey = "username";
 const computedProps = {
-  zebra: "last",
   id: "user-456",
   [dynamicKey]: "john_doe",
   alpha: "first",
-  email: "john@example.com"
+  email: "john@example.com",
+  zebra: "last"
 };
 
 // ============================================================================
@@ -522,10 +522,10 @@ const computedProps = {
 // ============================================================================
 
 const patterns = {
-  url: /^https?:\/\/.+/,
   id: /^[a-f0-9]{24}$/,
+  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
   phone: /^\+?[\d\s-()]+$/,
-  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  url: /^https?:\/\/.+/
 };
 
 // ============================================================================

@@ -1,44 +1,64 @@
 import * as vscode from 'vscode';
 
-const _isSortableContext = (text: string, bracePos: number) => {
-    let i = bracePos - 1;
-    while (i >= 0 && /[\s\n]/.test(text[i])) i--;
+// Structural detection - no keyword checking
+// An object literal: { key: value, key2: value2 } or { shorthand, other }
+export const _isObjectLiteral = (content: string) => {
+    const trimmed = content.trim();
+    if (trimmed.length === 0) return false;
     
-    if (i < 0) return true;
+    let depth = 0;
+    let inString = false;
+    let stringChar = '';
+    let colonCount = 0;
+    let commaCount = 0;
+    let semicolonCount = 0;
     
-    if (text[i] === ')') return false;
-    
-    if (text[i] === '>') {
-        if (i > 0 && text[i - 1] === '=') return false;
-        return false;
+    for (let i = 0; i < trimmed.length; i++) {
+        const c = trimmed[i];
+        const prev = i > 0 ? trimmed[i - 1] : '';
+        
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            stringChar = c;
+        } else if (inString && c === stringChar && prev !== '\\') {
+            inString = false;
+        } else if (!inString) {
+            if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
+            if (c === '}' || c === ']' || c === ')' || c === '>') depth--;
+            
+            if (depth === 0) {
+                if (c === ':') colonCount++;
+                if (c === ',') commaCount++;
+                if (c === ';') semicolonCount++;
+            }
+        }
     }
     
-    if (text[i] === '=') {
-        if (i > 0 && text[i - 1] === '=') return false;
-        if (i < text.length - 1 && text[i + 1] === '>') return false;
+    const isObject = (colonCount > 0 && colonCount >= commaCount) || 
+                     (commaCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*,/.test(trimmed));
+    
+    return isObject;
+};
+
+export const _isSortableContext = (text: string, bracePos: number) => {
+    const closePos = _findClosing(text, bracePos);
+    if (closePos === -1) return false;
+    
+    const content = text.substring(bracePos + 1, closePos);
+    
+    if (_isObjectLiteral(content)) {
         return true;
     }
     
-    if (text[i] === ':') return true;
-    if (text[i] === ',') return true;
-    if (text[i] === '[') return true;
-    
     const lookback = text.substring(Math.max(0, bracePos - 100), bracePos);
-    if (/import\s*$/.test(lookback)) return true;
-    if (/export\s*$/.test(lookback)) return true;
-    if (/return\s*$/.test(lookback)) return true;
+    if (/\b(import|export)\s*$/.test(lookback)) return true;
     if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
     if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
-    
-    if (/\b(const|let|var)\s+\w+\s*=\s*$/.test(lookback)) return true;
-    if (/\b(const|let|var)\s+\{/.test(lookback)) return true;
-    
-    if (/\bclass\s+\w+/.test(lookback)) return false;
     
     return false;
 };
 
-const _findClosing = (text: string, start: number) => {
+export const _findClosing = (text: string, start: number) => {
     let depth = 0;
     let inString = false;
     let stringChar = '';
@@ -63,7 +83,7 @@ const _findClosing = (text: string, start: number) => {
     return -1;
 };
 
-const _extractKey = (propertyText: string) => {
+export const _extractKey = (propertyText: string) => {
     const trimmed = propertyText.trim();
     
     const colonMatch = trimmed.match(/^["']?([^:"'\s]+)["']?\s*:/);
@@ -96,7 +116,6 @@ const _findPropertyRanges = (content: string) => {
     for (let i = 0; i < content.length; i++) {
         const c = content[i];
         const prev = i > 0 ? content[i - 1] : '';
-        const prev2 = i > 1 ? content[i - 2] : '';
         
         if (!inString && (c === '"' || c === "'" || c === '`')) {
             inString = true;
@@ -104,8 +123,8 @@ const _findPropertyRanges = (content: string) => {
         } else if (inString && c === stringChar && prev !== '\\') {
             inString = false;
         } else if (!inString) {
-            if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
-            if (c === '}' || c === ']' || c === ')' || c === '>') depth--;
+            if (c === '{' || c === '[' || c === '(') depth++;
+            if (c === '}' || c === ']' || c === ')') depth--;
             
             if (c === ',' && depth === 0) {
                 ranges.push({ start: propStart, end: i });
@@ -130,7 +149,7 @@ const _findPropertyRanges = (content: string) => {
     return ranges;
 };
 
-const _sortBlock = (fullBlock: string) => {
+export const _sortBlock = (fullBlock: string) => {
     const content = fullBlock.substring(1, fullBlock.length - 1);
     const ranges = _findPropertyRanges(content);
     
@@ -231,7 +250,14 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
             if (end === -1) continue;
             
             if (_shouldIgnore(text, i, ignorePositions)) continue;
-            if (!_isSortableContext(text, i)) continue;
+            
+            const isSortable = _isSortableContext(text, i);
+            const preview = text.substring(Math.max(0, i - 30), i + 10).replace(/\n/g, '\\n');
+            if (preview.includes('componentProps') || preview.includes('eventHandlers')) {
+                console.log(`[DEBUG] ${preview} → sortable: ${isSortable}`);
+            }
+            
+            if (!isSortable) continue;
             
             const depth = _getDepth(text, i);
             blocks.push({ start: i, end, depth });

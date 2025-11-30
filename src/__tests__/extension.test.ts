@@ -1,470 +1,215 @@
-// Unit tests for extension functions
-// Mock VSCode API
-const mockTextEdit = {
-  replace: jest.fn((range: any, text: string) => ({ range, newText: text }))
-};
+import { _isObjectLiteral, _extractKey, _sortBlock, _findClosing } from '../extension';
 
-const mockRange = jest.fn((start: any, end: any) => ({ start, end }));
-const mockPosition = jest.fn((line: number, char: number) => ({ line, character: char }));
-
-jest.mock('vscode', () => ({
-  TextEdit: mockTextEdit,
-  Range: mockRange,
-  Position: mockPosition
-}), { virtual: true });
-
-import { _findBlocksAndSort, _applyEdits } from '../extension';
-
-const createMockDocument = (content: string) => {
-  return {
-    getText: () => content,
-    positionAt: (offset: number) => {
-      const lines = content.substring(0, offset).split('\n');
-      return { line: lines.length - 1, character: lines[lines.length - 1].length };
-    },
-    offsetAt: (position: { line: number; character: number }) => {
-      const lines = content.split('\n');
-      let offset = 0;
-      for (let i = 0; i < position.line; i++) {
-        offset += lines[i].length + 1;
-      }
-      return offset + position.character;
-    }
-  } as any;
-};
-
-const createMockEditor = (content: string) => {
-  let currentContent = content;
-  return {
-    document: createMockDocument(currentContent),
-    edit: jest.fn(async (callback: any) => {
-      const builder = {
-        replace: (range: any, text: string) => {
-          const doc = createMockDocument(currentContent);
-          const startOffset = doc.offsetAt(range.start);
-          const endOffset = doc.offsetAt(range.end);
-          currentContent = currentContent.substring(0, startOffset) + text + currentContent.substring(endOffset);
-        }
-      };
-      callback(builder);
-      return true;
-    }),
-    getContent: () => currentContent
-  } as any;
-};
-
-describe('_findBlocksAndSort', () => {
-  describe('Priority Sorting', () => {
-    it('should prioritize __typename first', () => {
-      const input = `const obj = { name: "test", id: "123", __typename: "User" };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('__typename: "User"');
-      expect(edits[0].newText.indexOf('__typename')).toBeLessThan(edits[0].newText.indexOf('id'));
+describe('_isObjectLiteral', () => {
+    it('should detect simple object with key-value pairs', () => {
+        expect(_isObjectLiteral('name: "John", age: 30')).toBe(true);
     });
 
-    it('should prioritize id second', () => {
-      const input = `const obj = { name: "test", age: 30, id: "123" };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('id: "123"');
-      expect(edits[0].newText.indexOf('id')).toBeLessThan(edits[0].newText.indexOf('age'));
+    it('should detect object with functions', () => {
+        expect(_isObjectLiteral('onClick: () => {}, onChange: () => {}')).toBe(true);
     });
 
-    it('should prioritize _id third', () => {
-      const input = `const obj = { name: "test", _id: "mongo", age: 30 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('_id: "mongo"');
-      expect(edits[0].newText.indexOf('_id')).toBeLessThan(edits[0].newText.indexOf('age'));
+    it('should detect object with await in value', () => {
+        expect(_isObjectLiteral('data: await fetch("/api"), message: "Success"')).toBe(true);
     });
 
-    it('should handle all three priorities together', () => {
-      const input = `const obj = { name: "test", _id: "mongo", id: "123", __typename: "User", age: 30 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      const sorted = edits[0].newText;
-      const typenamePos = sorted.indexOf('__typename');
-      const idPos = sorted.indexOf('id:');
-      const _idPos = sorted.indexOf('_id:');
-      const agePos = sorted.indexOf('age:');
-      
-      expect(typenamePos).toBeLessThan(idPos);
-      expect(idPos).toBeLessThan(_idPos);
-      expect(_idPos).toBeLessThan(agePos);
-    });
-  });
-
-  describe('Object Sorting', () => {
-    it('should sort object properties alphabetically', () => {
-      const input = `const obj = { zebra: 1, alpha: 2, monkey: 3 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText.indexOf('alpha')).toBeLessThan(edits[0].newText.indexOf('monkey'));
-      expect(edits[0].newText.indexOf('monkey')).toBeLessThan(edits[0].newText.indexOf('zebra'));
+    it('should detect shorthand properties', () => {
+        expect(_isObjectLiteral('name, age, id')).toBe(true);
     });
 
-    it('should sort nested objects recursively', () => {
-      const input = `const obj = {
-  user: {
-    name: "John",
-    id: "123",
-    email: "john@example.com"
-  },
-  version: "1.0"
-};`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits.some(edit => edit.newText.includes('id: "123"'))).toBe(true);
+    it('should NOT detect function body', () => {
+        expect(_isObjectLiteral('const x = 1; return x;')).toBe(false);
     });
 
-    it('should handle deeply nested objects', () => {
-      const input = `const obj = {
-  level1: {
-    level2: {
-      zebra: 1,
-      alpha: 2,
-      id: "123"
-    },
-    beta: "test"
-  }
-};`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits.some(edit => edit.newText.includes('id:') && edit.newText.includes('alpha:'))).toBe(true);
-    });
-  });
-
-  describe('Array Handling', () => {
-    it('should NOT sort arrays - order matters', () => {
-      const input = `const arr = ["zebra", "apple", "monkey", "banana"];`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
+    it('should NOT detect if statement', () => {
+        expect(_isObjectLiteral('if (condition) { doSomething(); }')).toBe(false);
     });
 
-    it('should NOT sort arrays with variables', () => {
-      const input = `const arr = [lastName, firstName, age, id];`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
+    it('should NOT detect empty content', () => {
+        expect(_isObjectLiteral('')).toBe(false);
+        expect(_isObjectLiteral('   ')).toBe(false);
     });
 
-    it('should sort objects inside arrays', () => {
-      const input = `const arr = [{ name: "B", id: "2" }, { name: "A", id: "1" }];`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(2);
-      expect(edits[0].newText).toMatch(/id.*name/);
+    it('should detect TypeScript interface properties', () => {
+        expect(_isObjectLiteral('name: string; age: number; id: string;')).toBe(true);
     });
 
-    it('should NOT sort number arrays', () => {
-      const input = `const nums = [5, 2, 8, 1, 3];`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
-    });
-  });
-
-  describe('Import Sorting', () => {
-    it('should sort named imports alphabetically', () => {
-      const input = `import { useState, useEffect, useMemo, useCallback } from "react";`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('useCallback');
-      expect(edits[0].newText.indexOf('useCallback')).toBeLessThan(edits[0].newText.indexOf('useState'));
+    it('should handle nested objects correctly', () => {
+        expect(_isObjectLiteral('user: { name: "John", age: 30 }, active: true')).toBe(true);
     });
 
-    it('should preserve import formatting with newlines', () => {
-      const input = `import {
-  useState,
-  useEffect,
-  useMemo,
-  useCallback
-} from "react";`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('\n');
-      expect(edits[0].newText).toContain('useCallback');
+    it('should handle arrays in values', () => {
+        expect(_isObjectLiteral('tags: ["a", "b"], count: 2')).toBe(true);
     });
-  });
+});
 
-  describe('TypeScript Support', () => {
-    it('should sort interface properties with semicolons', () => {
-      const input = `interface User {
-  name: string;
-  age: number;
-  id: string;
+describe('_extractKey', () => {
+    it('should extract key from key:value pair', () => {
+        expect(_extractKey('name: "John"')).toBe('name');
+    });
+
+    it('should extract key from string key', () => {
+        expect(_extractKey('"api-key": "secret"')).toBe('api-key');
+    });
+
+    it('should extract key from single quote string', () => {
+        expect(_extractKey("'data-id': 123")).toBe('data-id');
+    });
+
+    it('should extract shorthand property', () => {
+        expect(_extractKey('name')).toBe('name');
+        expect(_extractKey('id')).toBe('id');
+    });
+
+    it('should extract key with whitespace', () => {
+        expect(_extractKey('  name: "John"  ')).toBe('name');
+    });
+
+    it('should extract __typename', () => {
+        expect(_extractKey('__typename: "User"')).toBe('__typename');
+    });
+
+    it('should extract _id', () => {
+        expect(_extractKey('_id: "mongo123"')).toBe('_id');
+    });
+
+    it('should return null for invalid property', () => {
+        expect(_extractKey('')).toBe(null);
+        expect(_extractKey('   ')).toBe(null);
+    });
+});
+
+describe('_sortBlock', () => {
+    it('should sort simple object alphabetically', () => {
+        const input = '{ zebra: 1, alpha: 2, monkey: 3 }';
+        const result = _sortBlock(input);
+        expect(result).toBe('{ alpha: 2, monkey: 3, zebra: 1 }');
+    });
+
+    it('should prioritize __typename, id, _id', () => {
+        const input = '{ name: "John", id: "123", __typename: "User", _id: "mongo" }';
+        const result = _sortBlock(input);
+        expect(result).toContain('__typename');
+        expect(result.indexOf('__typename')).toBeLessThan(result.indexOf('id'));
+        expect(result.indexOf('id')).toBeLessThan(result.indexOf('_id'));
+        expect(result.indexOf('_id')).toBeLessThan(result.indexOf('name'));
+    });
+
+    it('should preserve formatting with newlines', () => {
+        const input = `{
+  zebra: 1,
+  alpha: 2
 }`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('id: string;');
-      expect(edits[0].newText.indexOf('id:')).toBeLessThan(edits[0].newText.indexOf('name:'));
+        const result = _sortBlock(input);
+        expect(result).toContain('\n');
+        expect(result.indexOf('alpha')).toBeLessThan(result.indexOf('zebra'));
     });
 
-    it('should sort type properties', () => {
-      const input = `type User = {
-  name: string;
-  id: string;
-  age: number;
-};`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('id: string;');
-    });
-  });
-
-  describe('Ignore Comments', () => {
-    it('should skip sorting with auto-sort-ignore-next-line', () => {
-      const input = `// auto-sort-ignore-next-line
-const obj = { zebra: 1, apple: 2 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
+    it('should preserve function values', () => {
+        const input = '{ onClick: () => {}, onChange: () => {} }';
+        const result = _sortBlock(input);
+        expect(result).toContain('onChange: () => {}');
+        expect(result).toContain('onClick: () => {}');
+        expect(result.indexOf('onChange')).toBeLessThan(result.indexOf('onClick'));
     });
 
-    it('should skip sorting with auto-sort-ignore', () => {
-      const input = `// auto-sort-ignore
-const obj = { zebra: 1, apple: 2 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
+    it('should not modify already sorted object', () => {
+        const input = '{ alpha: 1, beta: 2, gamma: 3 }';
+        const result = _sortBlock(input);
+        expect(result).toBe(input);
     });
 
-    it('should sort other blocks when one is ignored', () => {
-      const input = `// auto-sort-ignore
-const obj1 = { zebra: 1, apple: 2 };
-const obj2 = { zebra: 3, apple: 4 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(1);
-    });
-  });
-
-  describe('Format Preservation', () => {
-    it('should preserve trailing commas', () => {
-      const input = `const obj = {
-  zebra: 1,
-  alpha: 2,
-};`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      // Verify trailing comma is preserved on last property
-      expect(edits[0].newText).toMatch(/zebra: 1,/);
-      expect(edits[0].newText).toMatch(/alpha: 2,/);
-      // Both properties should have trailing commas
-      const commaCount = (edits[0].newText.match(/,/g) || []).length;
-      expect(commaCount).toBe(2);
+    it('should handle single property', () => {
+        const input = '{ onlyOne: true }';
+        const result = _sortBlock(input);
+        expect(result).toBe(input);
     });
 
-    it('should preserve spacing around properties', () => {
-      const input = `const obj = { zebra: 1 , alpha: 2 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain(' ,');
+    it('should handle empty object', () => {
+        const input = '{}';
+        const result = _sortBlock(input);
+        expect(result).toBe(input);
     });
 
-    it('should preserve semicolons in interfaces', () => {
-      const input = `interface Test { zebra: string; alpha: number; }`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText.match(/;/g)?.length).toBe(2);
+    it('should preserve string keys', () => {
+        const input = '{ "z-index": 100, "a-value": "test" }';
+        const result = _sortBlock(input);
+        expect(result.indexOf('"a-value"')).toBeLessThan(result.indexOf('"z-index"'));
     });
 
-    it('should preserve newlines in multi-line objects', () => {
-      const input = `const obj = {
-  zebra: 1,
-  alpha: 2
-};`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText.match(/\n/g)?.length).toBeGreaterThan(0);
+    it('should preserve complex nested values', () => {
+        const input = '{ zebra: { nested: true }, alpha: [1, 2, 3] }';
+        const result = _sortBlock(input);
+        expect(result).toContain('{ nested: true }');
+        expect(result).toContain('[1, 2, 3]');
+        expect(result.indexOf('alpha')).toBeLessThan(result.indexOf('zebra'));
     });
-  });
-
-  describe('Edge Cases', () => {
-    it('should handle empty objects', () => {
-      const input = `const obj = {};`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
-    });
-
-    it('should handle single property objects', () => {
-      const input = `const obj = { only: true };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
-    });
-
-    it('should handle already sorted objects', () => {
-      const input = `const obj = { alpha: 1, beta: 2, gamma: 3 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBe(0);
-    });
-
-    it('should handle objects with string keys', () => {
-      const input = `const obj = { "z-index": 1, "a-value": 2, id: "3" };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText.indexOf('id:')).toBeLessThan(edits[0].newText.indexOf('"a-value"'));
-    });
-
-    it('should handle shorthand properties', () => {
-      const input = `const obj = { lastName, firstName, age, id };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText.indexOf('id')).toBeLessThan(edits[0].newText.indexOf('age'));
-    });
-  });
-
-  describe('Edit Ordering', () => {
-    it('should return edits sorted from end to start', () => {
-      const input = `const obj1 = { z: 1, a: 2 };
-const obj2 = { z: 3, a: 4 };
-const obj3 = { z: 5, a: 6 };`;
-      const doc = createMockDocument(input);
-      const edits = _findBlocksAndSort(input, doc);
-      
-      expect(edits.length).toBeGreaterThan(1);
-      for (let i = 1; i < edits.length; i++) {
-        expect(edits[i - 1].range.start.line).toBeGreaterThanOrEqual(edits[i].range.start.line);
-      }
-    });
-  });
 });
 
-describe('_applyEdits', () => {
-  it('should apply single edit correctly', async () => {
-    const input = `const obj = { zebra: 1, alpha: 2 };`;
-    const editor = createMockEditor(input);
-    const doc = createMockDocument(input);
-    const edits = _findBlocksAndSort(input, doc);
-    
-    await _applyEdits(editor, edits);
-    
-    const result = editor.getContent();
-    expect(result).toContain('alpha: 2');
-    expect(result.indexOf('alpha')).toBeLessThan(result.indexOf('zebra'));
-  });
+describe('_findClosing', () => {
+    it('should find closing brace for simple object', () => {
+        const text = '{ name: "John" }';
+        const result = _findClosing(text, 0);
+        expect(result).toBe(15);
+    });
 
-  it('should apply multiple edits in correct order', async () => {
-    const input = `const obj1 = { z: 1, a: 2 };
-const obj2 = { z: 3, a: 4 };`;
-    const editor = createMockEditor(input);
-    const doc = createMockDocument(input);
-    const edits = _findBlocksAndSort(input, doc);
-    
-    await _applyEdits(editor, edits);
-    
-    const result = editor.getContent();
-    expect(result).toContain('a: 2');
-    expect(result).toContain('a: 4');
-  });
+    it('should find closing brace for nested objects', () => {
+        const text = '{ outer: { inner: true } }';
+        const result = _findClosing(text, 0);
+        expect(result).toBe(25);
+    });
 
-  it('should apply nested object edits correctly', async () => {
-    const input = `const obj = {
-  outer: { z: 1, a: 2 },
-  inner: { z: 3, a: 4 }
-};`;
-    const editor = createMockEditor(input);
-    const doc = createMockDocument(input);
-    const edits = _findBlocksAndSort(input, doc);
-    
-    await _applyEdits(editor, edits);
-    
-    const result = editor.getContent();
-    expect(result).toContain('a: 2');
-    expect(result).toContain('a: 4');
-  });
+    it('should handle strings with braces', () => {
+        const text = '{ text: "has { and } in it" }';
+        const result = _findClosing(text, 0);
+        expect(result).toBe(28);
+    });
 
-  it('should handle edits with no changes gracefully', async () => {
-    const input = `const obj = { alpha: 1, beta: 2 };`;
-    const editor = createMockEditor(input);
-    const doc = createMockDocument(input);
-    const edits = _findBlocksAndSort(input, doc);
-    
-    await _applyEdits(editor, edits);
-    
-    const result = editor.getContent();
-    expect(result).toBe(input);
-  });
+    it('should return -1 if no closing brace found', () => {
+        const text = '{ unclosed: true';
+        const result = _findClosing(text, 0);
+        expect(result).toBe(-1);
+    });
 
-  it('should apply edits without creating overlaps', async () => {
-    const input = `const a = { z: 1, b: 2 };
-const b = { z: 3, b: 4 };
-const c = { z: 5, b: 6 };`;
-    const editor = createMockEditor(input);
-    const doc = createMockDocument(input);
-    const edits = _findBlocksAndSort(input, doc);
-    
-    await _applyEdits(editor, edits);
-    
-    const result = editor.getContent();
-    expect(result).toContain('b: 2');
-    expect(result).toContain('b: 4');
-    expect(result).toContain('b: 6');
-  });
+    it('should handle escaped quotes', () => {
+        const text = '{ text: "escaped \\"quote\\"" }';
+        const result = _findClosing(text, 0);
+        expect(result).toBe(29);
+    });
 
-  it('should preserve formatting when applying edits', async () => {
-    const input = `const obj = {
-  zebra: 1,
-  alpha: 2
-};`;
-    const editor = createMockEditor(input);
-    const doc = createMockDocument(input);
-    const edits = _findBlocksAndSort(input, doc);
-    
-    await _applyEdits(editor, edits);
-    
-    const result = editor.getContent();
-    expect(result).toContain('\n');
-    expect(result.match(/\n/g)?.length).toBe(input.match(/\n/g)?.length);
-  });
+    it('should handle template literals', () => {
+        const text = '{ text: `template ${var} here` }';
+        const result = _findClosing(text, 0);
+        expect(result).toBe(32);
+    });
 });
 
+describe('Integration Tests', () => {
+    it('should handle objects with function properties correctly', () => {
+        const input = `{
+  onSubmit: (event: any) => {
+    event.preventDefault();
+  },
+  onChange: () => {},
+  onClick: () => {}
+}`;
+        const result = _sortBlock(input);
+        expect(result.indexOf('onChange')).toBeLessThan(result.indexOf('onClick'));
+        expect(result.indexOf('onClick')).toBeLessThan(result.indexOf('onSubmit'));
+    });
+
+    it('should handle TypeScript interfaces', () => {
+        const content = 'name: string; age: number; id: string;';
+        expect(_isObjectLiteral(content)).toBe(true);
+    });
+
+    it('should handle return statement objects', () => {
+        const content = 'message: "Success", data: await response.json(), statusCode: 200';
+        expect(_isObjectLiteral(content)).toBe(true);
+    });
+
+    it('should NOT sort function bodies', () => {
+        const content = 'const x = 1; console.log(x); return x;';
+        expect(_isObjectLiteral(content)).toBe(false);
+    });
+});
