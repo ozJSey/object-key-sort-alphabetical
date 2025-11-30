@@ -1,19 +1,39 @@
 import * as vscode from 'vscode';
 
 const _isSortableContext = (text: string, bracePos: number) => {
-    const lookback = text.substring(Math.max(0, bracePos - 150), bracePos);
+    let i = bracePos - 1;
+    while (i >= 0 && /[\s\n]/.test(text[i])) i--;
+    
+    if (i < 0) return true;
+    
+    if (text[i] === ')') return false;
+    
+    if (text[i] === '>') {
+        if (i > 0 && text[i - 1] === '=') return false;
+        return false;
+    }
+    
+    if (text[i] === '=') {
+        if (i > 0 && text[i - 1] === '=') return false;
+        if (i < text.length - 1 && text[i + 1] === '>') return false;
+        return true;
+    }
+    
+    if (text[i] === ':') return true;
+    if (text[i] === ',') return true;
+    if (text[i] === '[') return true;
+    
+    const lookback = text.substring(Math.max(0, bracePos - 100), bracePos);
+    if (/import\s*$/.test(lookback)) return true;
+    if (/export\s*$/.test(lookback)) return true;
+    if (/return\s*$/.test(lookback)) return true;
+    if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
+    if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
     
     if (/\b(const|let|var)\s+\w+\s*=\s*$/.test(lookback)) return true;
     if (/\b(const|let|var)\s+\{/.test(lookback)) return true;
-    if (/:\s*$/.test(lookback)) return true;
-    if (/,\s*$/.test(lookback)) return true;
-    if (/\[\s*$/.test(lookback)) return true;
-    if (/=\s*$/.test(lookback) && !/[=!<>]\s*$/.test(lookback.slice(-3))) return true;
-    if (/\breturn\s+$/.test(lookback)) return true;
-    if (/\bimport\s*$/.test(lookback)) return true;
-    if (/\bexport\s*$/.test(lookback)) return true;
-    if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
-    if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
+    
+    if (/\bclass\s+\w+/.test(lookback)) return false;
     
     return false;
 };
