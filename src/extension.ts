@@ -12,9 +12,14 @@ const _isSortableContext = (text: string, bracePos: number) => {
     }
     
     if (text[i] === ')') {
+        let j = i + 1;
+        while (j < bracePos && /[\s\n]/.test(text[j])) j++;
+        if (text[j] === '=' && text[j + 1] === '>') return false;
+        
         const lookback = text.substring(Math.max(0, bracePos - 200), bracePos);
         if (/\bfunction\s+\w+\s*\([^)]*\)\s*$/.test(lookback)) return false;
         if (/\bfunction\s*\([^)]*\)\s*$/.test(lookback)) return false;
+        
         return false;
     }
     
