@@ -9,4 +9,13 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 assets/icon.svg
+assets/demo.gif
+out/debug-props.js
+out/debug-simple.js
+out/test-runner.js
+MANUAL_INLINE_TEST.ts
+MANUAL_TEST_REAL_WORLD.ts
+MANUAL-TEST.ts
+test-*.ts
+*.spec.ts
 
