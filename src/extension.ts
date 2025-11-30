@@ -115,6 +115,39 @@ const _findPropertyRanges = (content: string) => {
     let stringChar = '';
     let propStart = 0;
     
+    // Detect if this is an interface/type (uses semicolons) or object literal (uses commas)
+    // Count semicolons and commas at depth 0 to determine separator
+    const trimmed = content.trim();
+    let semicolonCount = 0;
+    let commaCount = 0;
+    let tempDepth = 0;
+    let tempInString = false;
+    let tempStringChar = '';
+    
+    for (let i = 0; i < trimmed.length; i++) {
+        const c = trimmed[i];
+        const prev = i > 0 ? trimmed[i - 1] : '';
+        
+        if (!tempInString && (c === '"' || c === "'" || c === '`')) {
+            tempInString = true;
+            tempStringChar = c;
+        } else if (tempInString && c === tempStringChar && prev !== '\\') {
+            tempInString = false;
+        } else if (!tempInString) {
+            if (c === '{' || c === '[' || c === '(' || c === '<') tempDepth++;
+            if (c === '}' || c === ']' || c === ')') tempDepth--;
+            if (c === '>' && prev !== '=') tempDepth--;
+            
+            if (tempDepth === 0) {
+                if (c === ';') semicolonCount++;
+                if (c === ',') commaCount++;
+            }
+        }
+    }
+    
+    // Use semicolon as separator ONLY if we have semicolons and NO commas (interface/type)
+    const useSemicolon = semicolonCount > 0 && commaCount === 0;
+    
     while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
         propStart++;
     }
@@ -133,7 +166,10 @@ const _findPropertyRanges = (content: string) => {
             if (c === '}' || c === ']' || c === ')') depth--;
             if (c === '>' && prev !== '=') depth--;
             
-            if ((c === ',' || c === ';') && depth === 0) {
+            // Split on comma always, or semicolon ONLY for interface/type
+            const shouldSplit = depth === 0 && (c === ',' || (useSemicolon && c === ';'));
+            
+            if (shouldSplit) {
                 ranges.push({ start: propStart, end: i });
                 
                 propStart = i + 1;
