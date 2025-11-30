@@ -149,43 +149,38 @@ describe('_findBlocksAndSort', () => {
     });
   });
 
-  describe('Array Sorting', () => {
-    it('should sort flat primitive arrays', () => {
+  describe('Array Handling', () => {
+    it('should NOT sort arrays - order matters', () => {
       const input = `const arr = ["zebra", "apple", "monkey", "banana"];`;
       const doc = createMockDocument(input);
       const edits = _findBlocksAndSort(input, doc);
       
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('"apple"');
-      expect(edits[0].newText.indexOf('"apple"')).toBeLessThan(edits[0].newText.indexOf('"banana"'));
+      expect(edits.length).toBe(0);
     });
 
-    it('should sort arrays with variable names', () => {
+    it('should NOT sort arrays with variables', () => {
       const input = `const arr = [lastName, firstName, age, id];`;
       const doc = createMockDocument(input);
       const edits = _findBlocksAndSort(input, doc);
       
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('age');
-      expect(edits[0].newText.indexOf('age')).toBeLessThan(edits[0].newText.indexOf('firstName'));
+      expect(edits.length).toBe(0);
     });
 
-    it('should NOT sort arrays with objects', () => {
-      const input = `const arr = [{ name: "B" }, { name: "A" }];`;
+    it('should sort objects inside arrays', () => {
+      const input = `const arr = [{ name: "B", id: "2" }, { name: "A", id: "1" }];`;
       const doc = createMockDocument(input);
       const edits = _findBlocksAndSort(input, doc);
       
-      const arrayEdits = edits.filter(edit => edit.newText.includes('['));
-      expect(arrayEdits.length).toBe(0);
+      expect(edits.length).toBe(2);
+      expect(edits[0].newText).toMatch(/id.*name/);
     });
 
-    it('should sort number arrays', () => {
+    it('should NOT sort number arrays', () => {
       const input = `const nums = [5, 2, 8, 1, 3];`;
       const doc = createMockDocument(input);
       const edits = _findBlocksAndSort(input, doc);
       
-      expect(edits.length).toBeGreaterThan(0);
-      expect(edits[0].newText).toContain('[1, 2, 3, 5, 8]');
+      expect(edits.length).toBe(0);
     });
   });
 

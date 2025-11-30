@@ -1,66 +1,178 @@
 import * as vscode from 'vscode';
 
-export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
-    const edits: vscode.TextEdit[] = [];
-    const blocks: Array<{ start: number; end: number; depth: number; isArray: boolean }> = [];
-    const ignorePositions = _findIgnoreComments(text);
+const _isSortableContext = (text: string, bracePos: number) => {
+    let i = bracePos - 1;
+    while (i >= 0 && /[\s\n]/.test(text[i])) i--;
+    if (i < 0) return false;
     
-    for (let i = 0; i < text.length; i++) {
-        if (text[i] === '{') {
-            const end = _findClosing(text, i, '{', '}');
-            if (end === -1) continue;
+    if (text[i] === '=') return true;
+    if (text[i] === ':') return true;
+    if (text[i] === ',') return true;
+    if (text[i] === '[') return true;
+    
+    const lookback = text.substring(Math.max(0, bracePos - 100), bracePos);
+    if (/import\s*$/.test(lookback)) return true;
+    if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
+    if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
+    
+    if (text[i] === ')') return false;
+    if (/\bclass\s+\w+/.test(lookback)) return false;
+    
+    return false;
+};
+
+const _findClosing = (text: string, start: number) => {
+    let depth = 0;
+    let inString = false;
+    let stringChar = '';
+    
+    for (let i = start; i < text.length; i++) {
+        const c = text[i];
+        const prev = i > 0 ? text[i - 1] : '';
+        
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            stringChar = c;
+        } else if (inString && c === stringChar && prev !== '\\') {
+            inString = false;
+        } else if (!inString) {
+            if (c === '{') depth++;
+            if (c === '}') {
+                depth--;
+                if (depth === 0) return i;
+            }
+        }
+    }
+    return -1;
+};
+
+const _extractProperties = (blockContent: string) => {
+    const properties: Array<{ start: number; end: number; key: string; full: string }> = [];
+    let current = '';
+    let currentStart = 0;
+    let depth = 0;
+    let inString = false;
+    let stringChar = '';
+    
+    for (let i = 0; i < blockContent.length; i++) {
+        const c = blockContent[i];
+        const prev = i > 0 ? blockContent[i - 1] : '';
+        
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            stringChar = c;
+        } else if (inString && c === stringChar && prev !== '\\') {
+            inString = false;
+        } else if (!inString) {
+            if (c === '{' || c === '[' || c === '(') depth++;
+            if (c === '}' || c === ']' || c === ')') depth--;
             
-            if (_shouldIgnoreBlock(text, i, ignorePositions)) continue;
-            
-            const depth = _getDepth(text, i);
-            blocks.push({ start: i, end, depth, isArray: false });
-        } else if (text[i] === '[') {
-            const end = _findClosing(text, i, '[', ']');
-            if (end === -1) continue;
-            
-            if (_shouldIgnoreBlock(text, i, ignorePositions)) continue;
-            
-            const depth = _getDepth(text, i);
-            blocks.push({ start: i, end, depth, isArray: true });
+            if ((c === ',' || c === ';') && depth === 0) {
+                const prop = current.trim();
+                if (prop) {
+                    const key = _extractKey(prop);
+                    if (key) {
+                        properties.push({
+                            start: currentStart,
+                            end: i,
+                            key,
+                            full: current
+                        });
+                    }
+                }
+                current = '';
+                currentStart = i + 1;
+                continue;
+            }
+        }
+        current += c;
+    }
+    
+    if (current.trim()) {
+        const prop = current.trim();
+        const key = _extractKey(prop);
+        if (key) {
+            properties.push({
+                start: currentStart,
+                end: blockContent.length,
+                key,
+                full: current
+            });
         }
     }
     
-    blocks.sort((a, b) => b.depth - a.depth);
+    return properties;
+};
+
+const _extractKey = (property: string) => {
+    const trimmed = property.trim();
     
-    blocks.forEach(({ start, end, isArray }) => {
-        const block = text.substring(start, end + 1);
-        const sorted = isArray ? _sortArrayIfNeeded(block) : _sortIfNeeded(block);
-        
-        if (sorted !== block) {
-            edits.push(vscode.TextEdit.replace(
-                new vscode.Range(document.positionAt(start), document.positionAt(end + 1)),
-                sorted
-            ));
-        }
+    const colonMatch = trimmed.match(/^["']?([^:"'\s]+)["']?\s*:/);
+    if (colonMatch) return colonMatch[1];
+    
+    const shorthandMatch = trimmed.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+    if (shorthandMatch) return shorthandMatch[1];
+    
+    return null;
+};
+
+const _priority = (key: string) => {
+    if (key.startsWith('__')) return -3;
+    if (key === 'id') return -2;
+    if (key === '_id') return -1;
+    return 0;
+};
+
+const _sortBlock = (fullBlock: string) => {
+    const openBrace = fullBlock[0];
+    const closeBrace = fullBlock[fullBlock.length - 1];
+    const content = fullBlock.substring(1, fullBlock.length - 1);
+    
+    const props = _extractProperties(content);
+    if (props.length <= 1) return fullBlock;
+    
+    const sorted = [...props].sort((a, b) => {
+        const diff = _priority(a.key) - _priority(b.key);
+        return diff !== 0 ? diff : a.key.localeCompare(b.key);
     });
     
-    return edits.sort((a, b) => b.range.start.line - a.range.start.line);
+    const isSorted = props.every((p, i) => p.key === sorted[i].key);
+    if (isSorted) return fullBlock;
+    
+    const positionsWithIndex = props.map((p, idx) => ({ 
+        start: p.start, 
+        end: p.end, 
+        originalIndex: idx 
+    }));
+    positionsWithIndex.sort((a, b) => b.start - a.start);
+    
+    let result = content;
+    positionsWithIndex.forEach(pos => {
+        const newContent = sorted[pos.originalIndex].full;
+        result = result.substring(0, pos.start) + newContent + result.substring(pos.end);
+    });
+    
+    return openBrace + result + closeBrace;
 };
 
 const _findIgnoreComments = (text: string) => {
     const positions: number[] = [];
     const lines = text.split('\n');
-    let currentPos = 0;
+    let pos = 0;
     
-    lines.forEach((line, index) => {
+    lines.forEach(line => {
         if (line.includes('auto-sort-ignore-next-line') || line.includes('auto-sort-ignore')) {
-            const nextLineStart = currentPos + line.length + 1;
-            positions.push(nextLineStart);
+            positions.push(pos + line.length + 1);
         }
-        currentPos += line.length + 1;
+        pos += line.length + 1;
     });
     
     return positions;
 };
 
-const _shouldIgnoreBlock = (text: string, blockStart: number, ignorePositions: number[]) => {
+const _shouldIgnore = (text: string, bracePos: number, ignorePositions: number[]) => {
     return ignorePositions.some(ignorePos => {
-        const distance = blockStart - ignorePos;
+        const distance = bracePos - ignorePos;
         return distance >= 0 && distance < 50;
     });
 };
@@ -68,15 +180,16 @@ const _shouldIgnoreBlock = (text: string, blockStart: number, ignorePositions: n
 const _getDepth = (text: string, pos: number) => {
     let depth = 0;
     let inString = false;
-    let quote = '';
+    let stringChar = '';
     
     for (let i = 0; i < pos; i++) {
         const c = text[i];
+        const prev = i > 0 ? text[i - 1] : '';
         
         if (!inString && (c === '"' || c === "'" || c === '`')) {
             inString = true;
-            quote = c;
-        } else if (inString && c === quote && text[i - 1] !== '\\') {
+            stringChar = c;
+        } else if (inString && c === stringChar && prev !== '\\') {
             inString = false;
         } else if (!inString) {
             if (c === '{' || c === '[') depth++;
@@ -87,194 +200,39 @@ const _getDepth = (text: string, pos: number) => {
     return depth;
 };
 
-const _sortArrayIfNeeded = (array: string) => {
-    const inner = array.slice(1, -1);
-    const items = _splitItems(inner);
+export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
+    const edits: vscode.TextEdit[] = [];
+    const blocks: Array<{ start: number; end: number; depth: number }> = [];
+    const ignorePositions = _findIgnoreComments(text);
     
-    if (items.length <= 1) return array;
-    
-    const isPrimitive = items.every(item => {
-        const trimmed = item.trim();
-        return /^["'`]/.test(trimmed) || 
-               /^\d+$/.test(trimmed) || 
-               /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(trimmed) ||
-               trimmed === 'true' || 
-               trimmed === 'false' ||
-               trimmed === 'null' ||
-               trimmed === 'undefined';
-    });
-    
-    if (!isPrimitive) return array;
-    
-    const contents = items.map(item => item.replace(/^[\s\n]+/, '').replace(/[\s\n,]+$/, ''));
-    const sorted = [...contents].sort((a, b) => {
-        const cleanA = a.replace(/^["'`]|["'`]$/g, '');
-        const cleanB = b.replace(/^["'`]|["'`]$/g, '');
-        return cleanA.localeCompare(cleanB);
-    });
-    
-    if (contents.every((c, i) => c === sorted[i])) return array;
-    
-    const rebuilt = items.map((originalItem, i) => {
-        const leading = originalItem.match(/^[\s\n]*/)?.[0] || '';
-        const trailing = originalItem.match(/[\s\n,]*$/)?.[0] || '';
-        return leading + sorted[i] + trailing;
-    });
-    
-    return '[' + rebuilt.join(',') + ']';
-};
-
-const _findClosing = (text: string, start: number, openChar = '{', closeChar = '}') => {
-    let depth = 0;
-    let inString = false;
-    let quote = '';
-    
-    for (let i = start; i < text.length; i++) {
-        const c = text[i];
-        
-        if (!inString && (c === '"' || c === "'" || c === '`')) {
-            inString = true;
-            quote = c;
-        } else if (inString && c === quote && text[i - 1] !== '\\') {
-            inString = false;
-        } else if (!inString) {
-            if (c === openChar) depth++;
-            if (c === closeChar) {
-                depth--;
-                if (depth === 0) return i;
-            }
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] === '{') {
+            const end = _findClosing(text, i);
+            if (end === -1) continue;
+            
+            if (_shouldIgnore(text, i, ignorePositions)) continue;
+            if (!_isSortableContext(text, i)) continue;
+            
+            const depth = _getDepth(text, i);
+            blocks.push({ start: i, end, depth });
         }
     }
     
-    return -1;
-};
-
-const _sortIfNeeded = (block: string) => {
-    const inner = block.slice(1, -1);
-    const items = _splitItemsWithSeparators(inner);
+    blocks.sort((a, b) => b.depth - a.depth);
     
-    if (items.length <= 1) return block;
-    
-    const contents = items.map(item => item.content);
-    const sorted = [...contents].sort((a, b) => {
-        const keyA = _getKey(a);
-        const keyB = _getKey(b);
-        const diff = _priority(keyA) - _priority(keyB);
-        return diff !== 0 ? diff : keyA.localeCompare(keyB);
-    });
-    
-    if (contents.every((c, i) => _getKey(c) === _getKey(sorted[i]))) return block;
-    
-    const rebuilt = items.map((item, i) => {
-        const newItem = item.leading + sorted[i] + item.separator;
-        if (i === items.length - 1) {
-            return newItem + item.trailing;
-        }
-        return newItem;
-    });
-    
-    return block[0] + rebuilt.join('') + block[block.length - 1];
-};
-
-const _splitItemsWithSeparators = (text: string) => {
-    const items: Array<{ leading: string; content: string; separator: string; trailing: string }> = [];
-    let current = '';
-    let depth = 0;
-    let inString = false;
-    let quote = '';
-    
-    text.split('').forEach((c, i) => {
-        if (!inString && (c === '"' || c === "'" || c === '`')) {
-            inString = true;
-            quote = c;
-        } else if (inString && c === quote && text[i - 1] !== '\\') {
-            inString = false;
-        } else if (!inString && (c === '{' || c === '[' || c === '(')) {
-            depth++;
-        } else if (!inString && (c === '}' || c === ']' || c === ')')) {
-            depth--;
-        } else if (!inString && (c === ',' || c === ';') && depth === 0) {
-            const leadingMatch = current.match(/^([\s\n]*)/);
-            const leading = leadingMatch ? leadingMatch[1] : '';
-            const withoutLeading = current.substring(leading.length);
-            
-            const trailingSpaceMatch = withoutLeading.match(/([\s\n]*)$/);
-            const trailingSpace = trailingSpaceMatch ? trailingSpaceMatch[1] : '';
-            const content = withoutLeading.substring(0, withoutLeading.length - trailingSpace.length);
-            
-            items.push({
-                leading,
-                content,
-                separator: trailingSpace + c,
-                trailing: ''
-            });
-            current = '';
-            return;
-        }
-        current += c;
-    });
-    
-    if (current.trim()) {
-        const leadingMatch = current.match(/^([\s\n]*)/);
-        const leading = leadingMatch ? leadingMatch[1] : '';
-        const withoutLeading = current.substring(leading.length);
-        const trailingMatch = withoutLeading.match(/([\s\n]*)$/);
-        const trailing = trailingMatch ? trailingMatch[1] : '';
-        const content = withoutLeading.substring(0, withoutLeading.length - trailing.length);
+    blocks.forEach(({ start, end }) => {
+        const original = text.substring(start, end + 1);
+        const sorted = _sortBlock(original);
         
-        items.push({
-            leading,
-            content,
-            separator: '',
-            trailing
-        });
-    }
-    
-    return items;
-};
-
-const _splitItems = (text: string) => {
-    const items: string[] = [];
-    let current = '';
-    let depth = 0;
-    let inString = false;
-    let quote = '';
-    
-    text.split('').forEach((c, i) => {
-        if (!inString && (c === '"' || c === "'" || c === '`')) {
-            inString = true;
-            quote = c;
-        } else if (inString && c === quote && text[i - 1] !== '\\') {
-            inString = false;
-        } else if (!inString && (c === '{' || c === '[' || c === '(')) {
-            depth++;
-        } else if (!inString && (c === '}' || c === ']' || c === ')')) {
-            depth--;
-        } else if (!inString && (c === ',' || c === ';') && depth === 0) {
-            items.push(current);
-            current = '';
-            return;
+        if (sorted !== original) {
+            edits.push(vscode.TextEdit.replace(
+                new vscode.Range(document.positionAt(start), document.positionAt(end + 1)),
+                sorted
+            ));
         }
-        current += c;
     });
     
-    if (current.trim()) items.push(current);
-    
-    return items;
-};
-
-const _getKey = (item: string) => {
-    const match = item.match(/^["']?([^:"'\s]+)["']?\s*:/);
-    if (match) return match[1];
-    const shorthand = item.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)/);
-    return shorthand ? shorthand[1] : item;
-};
-
-const _priority = (key: string) => {
-    if (key.startsWith('__')) return -3;
-    if (key === 'id') return -2;
-    if (key === '_id') return -1;
-    return 0;
+    return edits.sort((a, b) => b.range.start.line - a.range.start.line);
 };
 
 export const _applyEdits = async (editor: vscode.TextEditor, edits: vscode.TextEdit[]) => {
