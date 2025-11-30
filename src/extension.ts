@@ -93,6 +93,7 @@ const _findPropertyRanges = (content: string) => {
     for (let i = 0; i < content.length; i++) {
         const c = content[i];
         const prev = i > 0 ? content[i - 1] : '';
+        const prev2 = i > 1 ? content[i - 2] : '';
         
         if (!inString && (c === '"' || c === "'" || c === '`')) {
             inString = true;
@@ -103,7 +104,7 @@ const _findPropertyRanges = (content: string) => {
             if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
             if (c === '}' || c === ']' || c === ')' || c === '>') depth--;
             
-            if ((c === ',' || c === ';') && depth === 0) {
+            if (c === ',' && depth === 0) {
                 ranges.push({ start: propStart, end: i });
                 
                 propStart = i + 1;
