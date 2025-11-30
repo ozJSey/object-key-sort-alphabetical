@@ -1,30 +1,30 @@
 // 🧪 COMPREHENSIVE MANUAL TEST FILE
 // Save this file (Cmd/Ctrl + S) to verify ALL extension features!
-// This file covers EVERYTHING the extension should handle
+// This file is intentionally UNSORTED to test the extension
 
 // ============================================================================
 // SECTION 1: IMPORTS - Should be sorted alphabetically
 // ============================================================================
 
-// Single-line imports
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { map, filter, reduce, forEach, find, some, every } from "lodash";
-import { zebra, apple, monkey, banana } from "animals";
+// Single-line imports (UNSORTED)
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { reduce, map, some, filter, forEach, every, find } from "lodash";
+import { monkey, zebra, apple, banana } from "animals";
 
-// Multi-line imports
+// Multi-line imports (UNSORTED)
 import {
   ZebraComponent,
+  DeltaComponent,
   AlphaComponent,
-  BetaComponent,
   GammaComponent,
-  DeltaComponent
+  BetaComponent
 } from "my-ui-library";
 
 import {
-  zulu,
-  alpha,
   charlie,
-  bravo
+  zulu,
+  bravo,
+  alpha
 } from "phonetic";
 
 // ============================================================================
@@ -33,30 +33,30 @@ import {
 
 interface UserProfile {
   username: string;
-  email: string;
   age: number;
-  _id: string;
+  email: string;
   id: string;
+  _id: string;
   __typename: string;
 }
 
 type ApiConfig = {
-  timeout: number;
   retries: number;
+  timeout: number;
+  enabled: boolean;
   baseUrl: string;
   headers: Record<string, string>;
-  enabled: boolean;
 };
 
 interface NestedConfig {
   server: {
+    ssl: boolean;
     port: number;
     host: string;
-    ssl: boolean;
   };
   database: {
-    name: string;
     host: string;
+    name: string;
   };
 }
 
@@ -66,21 +66,21 @@ interface NestedConfig {
 
 const graphqlUser = {
   name: "John Doe",
-  age: 30,
   email: "john@example.com",
-  _id: "507f1f77bcf86cd799439011",
+  age: 30,
   city: "New York",
+  _id: "507f1f77bcf86cd799439011",
+  isActive: true,
   id: "user-123",
-  __typename: "User",
-  isActive: true
+  __typename: "User"
 };
 
 const anotherUser = {
   zipCode: "12345",
-  name: "Jane",
-  _id: "mongo-456",
   age: 25,
+  name: "Jane",
   id: "user-456",
+  _id: "mongo-456",
   __typename: "User"
 };
 
@@ -97,11 +97,11 @@ const age = 28;
 
 const shorthandObject = {
   lastName,
-  age,
-  id,
   firstName,
-  __typename,
-  _id
+  age,
+  _id,
+  id,
+  __typename
 };
 
 const zebra = "z";
@@ -110,10 +110,10 @@ const monkey = "m";
 
 const anotherShorthand = {
   zebra,
-  apple,
   monkey,
-  id,
-  __typename
+  apple,
+  __typename,
+  id
 };
 
 // ============================================================================
@@ -124,46 +124,46 @@ const nestedData = {
   user: {
     profile: {
       website: "example.com",
+      avatar: "avatar.jpg",
       bio: "Developer",
-      id: "profile-1",
-      avatar: "avatar.jpg"
+      id: "profile-1"
     },
     settings: {
       theme: "dark",
-      notifications: true,
       language: "en",
+      notifications: true,
       id: "settings-1"
     },
     name: "Bob",
-    id: "user-789",
-    __typename: "User"
+    __typename: "User",
+    id: "user-789"
   },
   metadata: {
     version: 1,
-    created: "2024-01-01",
-    __typename: "Metadata"
+    __typename: "Metadata",
+    created: "2024-01-01"
   }
 };
 
 const moreNested = {
+  simple: "data",
   outer: {
+    middle: "value",
     inner: {
       zebra: "z",
-      alpha: "a",
-      id: "inner-1"
+      id: "inner-1",
+      alpha: "a"
     },
-    middle: "value",
     id: "outer-1"
-  },
-  simple: "data"
+  }
 };
 
 // ============================================================================
 // SECTION 6: SINGLE-LINE OBJECTS - Should be sorted
 // ============================================================================
 
-const singleLine = { zebra: 1, alpha: 2, id: 3, beta: 4, __typename: "Single" };
-const anotherSingle = { z: 1, a: 2, m: 3, b: 4, id: 5 };
+const singleLine = { zebra: 1, beta: 4, alpha: 2, __typename: "Single", id: 3 };
+const anotherSingle = { z: 1, m: 3, a: 2, id: 5, b: 4 };
 
 // ============================================================================
 // SECTION 7: STRING KEYS - Should be sorted
@@ -171,30 +171,30 @@ const anotherSingle = { z: 1, a: 2, m: 3, b: 4, id: 5 };
 
 const config = {
   timeout: 5000,
-  "api-key": "secret-key-123",
   enabled: true,
-  id: "config-1",
-  "max-retries": 3,
+  "api-key": "secret-key-123",
   __typename: "Config",
+  id: "config-1",
   "base-url": "https://api.example.com",
+  "max-retries": 3,
   _id: "config-mongo-id"
 };
 
 const settings = {
   "z-index": 100,
+  id: "settings-1",
   "a-value": "test",
-  "m-option": true,
-  id: "settings-1"
+  "m-option": true
 };
 
 // ============================================================================
 // SECTION 8: OBJECT DESTRUCTURING - Should be sorted
 // ============================================================================
 
-const { zebra: z1, alpha: a1, monkey: m1 } = { alpha: 2, monkey: 3, zebra: 1 };
-const { lastName: ln, firstName: fn, age: userAge } = graphqlUser;
+const { zebra: z1, monkey: m1, alpha: a1 } = { alpha: 2, monkey: 3, zebra: 1 };
+const { lastName: ln, age: userAge, firstName: fn } = graphqlUser;
 
-function ComponentWithProps({ userId, theme, onClose, className }: any) {
+function ComponentWithProps({ userId, onClose, theme, className }: any) {
   return null;
 }
 
@@ -207,11 +207,11 @@ const eventHandlers = {
     event.preventDefault();
     console.log("Form submitted");
   },
-  onChange: (value: string) => {
-    console.log("Value changed:", value);
-  },
   onClick: () => {
     console.log("Clicked");
+  },
+  onChange: (value: string) => {
+    console.log("Value changed:", value);
   },
   onLoad: async () => {
     const data = await fetch("/api/data");
@@ -224,13 +224,13 @@ const componentProps = {
     event.preventDefault();
     return { handled: true };
   },
-  className: "btn btn-primary",
   disabled: false,
-  id: "complex-btn",
+  className: "btn btn-primary",
   children: ["Click", " ", "Me"],
+  id: "complex-btn",
+  type: "submit",
   "aria-label": "Complex button",
-  "data-testid": "test-button",
-  type: "submit"
+  "data-testid": "test-button"
 };
 
 // ============================================================================
@@ -242,29 +242,40 @@ const dataWithArrays = {
     { name: "Alice", id: "1" },
     { name: "Bob", id: "2" }
   ],
-  total: 2,
-  id: "list-1",
   tags: ["javascript", "typescript"],
-  __typename: "UserList"
+  total: 2,
+  __typename: "UserList",
+  id: "list-1"
 };
 
 // ============================================================================
-// SECTION 11: OBJECTS WITH REGULAR FUNCTIONS - Should sort
+// SECTION 11: OBJECTS WITH FUNCTIONS - Should sort
 // ============================================================================
 
 const apiClient = {
   post: async (url: string, data: any) => {
     return fetch(url, { body: JSON.stringify(data), method: "POST" });
   },
-  get: async (url: string) => {
-    return fetch(url, { method: "GET" });
-  },
   delete: async (url: string) => {
     return fetch(url, { method: "DELETE" });
   },
-  baseUrl: "https://api.example.com",
+  get: async (url: string) => {
+    return fetch(url, { method: "GET" });
+  },
   timeout: 5000,
+  baseUrl: "https://api.example.com",
   id: "api-client-1"
+};
+
+const withRegularFunction = {
+  zebra: "last",
+  calculate: function(a: number, b: number) {
+    return a + b;
+  },
+  alpha: "first",
+  process: function() {
+    console.log("processing");
+  }
 };
 
 // ============================================================================
@@ -273,16 +284,16 @@ const apiClient = {
 
 type ApiConfigWithGenerics = {
   timeout: number;
-  retries: number;
   baseUrl: string;
+  retries: number;
   headers: Record<string, string>;
   enabled: boolean;
 };
 
 const configWithGenerics: Record<string, any> = {
   zebra: "last",
-  alpha: "first",
-  id: "config-123"
+  id: "config-123",
+  alpha: "first"
 };
 
 // ============================================================================
@@ -291,27 +302,27 @@ const configWithGenerics: Record<string, any> = {
 
 const complexApiResponse = {
   statusCode: 200,
+  message: "Success",
   data: {
     users: [
       {
         email: "user1@example.com",
+        __typename: "User",
         name: "User One",
-        _id: "mongo1",
         id: "1",
-        __typename: "User"
+        _id: "mongo1"
       },
       {
         email: "user2@example.com",
-        name: "User Two",
         _id: "mongo2",
-        id: "2",
-        __typename: "User"
+        name: "User Two",
+        __typename: "User",
+        id: "2"
       }
     ],
-    total: 2,
-    __typename: "UserConnection"
+    __typename: "UserConnection",
+    total: 2
   },
-  message: "Success",
   timestamp: Date.now()
 };
 
@@ -322,18 +333,18 @@ const complexApiResponse = {
 function getUserData() {
   return {
     name: "John",
-    age: 30,
     email: "john@example.com",
-    id: "user-123",
-    __typename: "User"
+    age: 30,
+    __typename: "User",
+    id: "user-123"
   };
 }
 
 const getConfig = () => {
   return {
     timeout: 5000,
-    retries: 3,
     enabled: true,
+    retries: 3,
     apiKey: "secret"
   };
 };
@@ -342,8 +353,8 @@ async function fetchData() {
   const response = await fetch("/api/data");
   return {
     statusCode: 200,
-    data: await response.json(),
-    message: "Success"
+    message: "Success",
+    data: await response.json()
   };
 }
 
@@ -353,11 +364,11 @@ async function fetchData() {
 
 export {
   userSettings,
-  graphqlUser,
-  applicationConfig,
   eventHandlers,
-  apiClient,
-  complexApiResponse
+  graphqlUser,
+  complexApiResponse,
+  applicationConfig,
+  apiClient
 };
 
 // ============================================================================
@@ -371,7 +382,7 @@ const manualOrder1 = { zebra: 1, apple: 2, monkey: 3, banana: 4 };
 const manualOrder2 = { z: 5, a: 6, m: 7, b: 8 };
 
 // This one WILL be sorted (no ignore comment)
-const willBeSorted = { zebra: 9, apple: 10, monkey: 11, banana: 12 };
+const willBeSorted = { zebra: 9, monkey: 11, apple: 10, banana: 12 };
 
 // ============================================================================
 // SECTION 17: EMPTY & SINGLE PROPERTY - Should NOT be modified
@@ -475,6 +486,83 @@ class UserService {
 }
 
 // ============================================================================
+// SECTION 20: JSON-LIKE OBJECTS (like package.json)
+// ============================================================================
+
+const packageConfig = {
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest",
+    "build": "tsc",
+    "start": "node index.js"
+  },
+  "name": "my-package",
+  "dependencies": {
+    "react": "^18.0.0",
+    "lodash": "^4.17.21"
+  },
+  "description": "A test package"
+};
+
+// ============================================================================
+// SECTION 21: COMPUTED PROPERTY NAMES - Should handle correctly
+// ============================================================================
+
+const dynamicKey = "username";
+const computedProps = {
+  zebra: "last",
+  id: "user-456",
+  [dynamicKey]: "john_doe",
+  alpha: "first",
+  email: "john@example.com"
+};
+
+// ============================================================================
+// SECTION 22: OBJECTS WITH REGEX - Should sort, preserve regex
+// ============================================================================
+
+const patterns = {
+  url: /^https?:\/\/.+/,
+  id: /^[a-f0-9]{24}$/,
+  phone: /^\+?[\d\s-()]+$/,
+  email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+};
+
+// ============================================================================
+// SECTION 23: MULTI-LINE FUNCTION BODIES - Should sort keys, preserve bodies
+// ============================================================================
+
+const complexHandlers = {
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
+    const formData = new FormData(event.target);
+    console.log("Data:", formData);
+  },
+  onClick: () => {
+    console.log("Clicked");
+  },
+  onChange: (value: string) => {
+    console.log("Value changed:", value);
+    if (value.length > 10) {
+      console.log("Too long");
+    }
+  }
+};
+
+// ============================================================================
+// SECTION 24: OBJECTS WITH COMMENTS - Should preserve comments
+// ============================================================================
+
+const documentedConfig = {
+  timeout: 5000, // Maximum timeout in milliseconds
+  enabled: true, // Feature flag
+  retries: 3, // Number of retry attempts
+  apiKey: "secret-key", // API authentication key
+  id: "config-456" // Unique identifier
+};
+
+// ============================================================================
 // EXPECTED BEHAVIOR AFTER SAVE (Cmd/Ctrl + S):
 // ============================================================================
 // ✅ SHOULD BE SORTED:
@@ -506,4 +594,3 @@ class UserService {
 //    - All comments preserved with their properties
 //    - No reformatting or prettifying
 // ============================================================================
-
