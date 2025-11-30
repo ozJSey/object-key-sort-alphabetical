@@ -1,0 +1,26 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="64" fill="#1E1E1E"/>
+  
+  <!-- Curly braces (object) -->
+  <path d="M 30 35 Q 24 35 24 42 L 24 54 Q 24 58 20 58 Q 24 58 24 62 L 24 74 Q 24 81 30 81" 
+        stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M 98 35 Q 104 35 104 42 L 104 54 Q 104 58 108 58 Q 104 58 104 62 L 104 74 Q 104 81 98 81" 
+        stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+  
+  <!-- A-Z letters with arrow -->
+  <text x="40" y="52" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">A</text>
+  <text x="40" y="78" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white">Z</text>
+  
+  <!-- Arrow pointing down -->
+  <path d="M 64 43 L 64 73" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 64 73 L 59 68" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 64 73 L 69 68" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Small sorting indicators (lines) -->
+  <line x1="75" y1="50" x2="95" y2="50" stroke="white" stroke-width="2" opacity="0.6"/>
+  <line x1="75" y1="58" x2="88" y2="58" stroke="white" stroke-width="2" opacity="0.6"/>
+  <line x1="75" y1="66" x2="92" y2="66" stroke="white" stroke-width="2" opacity="0.6"/>
+  <line x1="75" y1="74" x2="98" y2="74" stroke="white" stroke-width="2" opacity="0.6"/>
+</svg>
+
