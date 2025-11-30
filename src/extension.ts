@@ -6,15 +6,15 @@ const _isSortableContext = (text: string, bracePos: number) => {
     
     if (i < 0) return true;
     
-    if (text[i] === ')') {
-        const lookback = text.substring(Math.max(0, bracePos - 200), bracePos);
-        if (/:\s*(\([^)]*\))?\s*=>\s*$/.test(lookback)) return true;
-        if (/:\s*function\s*\([^)]*\)\s*$/.test(lookback)) return true;
+    if (text[i] === '>') {
+        if (i > 0 && text[i - 1] === '=') return false;
         return false;
     }
     
-    if (text[i] === '>') {
-        if (i > 0 && text[i - 1] === '=') return false;
+    if (text[i] === ')') {
+        const lookback = text.substring(Math.max(0, bracePos - 200), bracePos);
+        if (/\bfunction\s+\w+\s*\([^)]*\)\s*$/.test(lookback)) return false;
+        if (/\bfunction\s*\([^)]*\)\s*$/.test(lookback)) return false;
         return false;
     }
     
@@ -35,7 +35,7 @@ const _isSortableContext = (text: string, bracePos: number) => {
     if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
     if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
     
-    if (/\b(const|let|var)\s+$/.test(lookback)) return true;
+    if (/\b(const|let|var)\s+\w+\s*=\s*$/.test(lookback)) return true;
     
     if (/\bclass\s+\w+/.test(lookback)) return false;
     

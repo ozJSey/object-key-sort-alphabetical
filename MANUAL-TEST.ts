@@ -181,20 +181,20 @@ const componentProps = {
   "aria-label": "Complex button",
   children: ["Click", " ", "Me"],
   className: "btn btn-primary",
-  "data-testid": "test-button",
-  disabled: false,
   onClick: (event) => {
     event.preventDefault();
     return { handled: true };
   },
+  "data-testid": "test-button",
+  disabled: false,
   type: "submit"
 };
 
 const handlers = {
-  id: "form-1",
-  name: "myForm",
   onChange: () => {},
-  onSubmit: () => console.log("submit")
+  id: "form-1",
+  onSubmit: () => console.log("submit"),
+  name: "myForm",
 };
 
 // ============================================================================
