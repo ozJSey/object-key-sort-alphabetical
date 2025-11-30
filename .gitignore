@@ -3,7 +3,5 @@ out
 *.vsix
 .vscode-test/
 
-# Manual testing file - users can see it on GitHub, but local changes won't be committed
-MANUAL_TEST.ts
 
 

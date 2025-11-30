@@ -6,16 +6,16 @@
 // SECTION 1: IMPORTS - Should be sorted alphabetically
 // ============================================================================
 
-import { useState, useRef, useMemo, useEffect, useCallback } from "react";
-import { reduce, map, forEach, filter, find, some, every } from "lodash";
-import { zebra, monkey, banana, apple } from "animals";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { every, filter, find, forEach, map, reduce, some } from "lodash";
+import { apple, banana, monkey, zebra } from "animals";
 
 import {
-  ZebraComponent,
-  GammaComponent,
-  DeltaComponent,
+  AlphaComponent,
   BetaComponent,
-  AlphaComponent
+  DeltaComponent,
+  GammaComponent,
+  ZebraComponent
 } from "my-ui-library";
 
 // ============================================================================
@@ -44,23 +44,23 @@ type ApiConfig = {
 // ============================================================================
 
 const graphqlUser = {
-  name: "John Doe",
-  email: "john@example.com",
-  age: 30,
-  city: "New York",
-  isActive: true,
   __typename: "User",
   id: "user-123",
-  _id: "507f1f77bcf86cd799439011"
+  _id: "507f1f77bcf86cd799439011",
+  age: 30,
+  city: "New York",
+  email: "john@example.com",
+  isActive: true,
+  name: "John Doe"
 };
 
 const anotherUser = {
-  zipCode: "12345",
-  name: "Jane",
-  age: 25,
   __typename: "User",
   id: "user-456",
-  _id: "mongo-456"
+  _id: "mongo-456",
+  age: 25,
+  name: "Jane",
+  zipCode: "12345"
 };
 
 // ============================================================================
@@ -75,12 +75,12 @@ const lastName = "Smith";
 const age = 28;
 
 const shorthandObject = {
-  lastName,
-  firstName,
-  age,
   __typename,
   id,
-  _id
+  _id,
+  age,
+  firstName,
+  lastName
 };
 
 // ============================================================================
@@ -88,27 +88,27 @@ const shorthandObject = {
 // ============================================================================
 
 const nestedData = {
-  user: {
-    settings: {
-      theme: "dark",
-      notifications: true,
-      language: "en",
-      id: "settings-1"
-    },
-    profile: {
-      website: "example.com",
-      bio: "Developer",
-      avatar: "avatar.jpg",
-      id: "profile-1"
-    },
-    name: "Bob",
-    __typename: "User",
-    id: "user-789"
-  },
   metadata: {
-    version: 1,
+    __typename: "Metadata",
     created: "2024-01-01",
-    __typename: "Metadata"
+    version: 1
+  },
+  user: {
+    __typename: "User",
+    id: "user-789",
+    name: "Bob",
+    profile: {
+      id: "profile-1",
+      avatar: "avatar.jpg",
+      bio: "Developer",
+      website: "example.com"
+    },
+    settings: {
+      id: "settings-1",
+      language: "en",
+      notifications: true,
+      theme: "dark"
+    }
   }
 };
 
@@ -116,35 +116,35 @@ const nestedData = {
 // SECTION 6: SINGLE-LINE OBJECTS - Should be sorted
 // ============================================================================
 
-const singleLine = { zebra: "z", apple: "a", monkey: "m", banana: "b" };
-const withPriority = { name: "Test", age: 30, id: "123", email: "test@example.com" };
+const singleLine = { apple: "a", banana: "b", monkey: "m", zebra: "z" };
+const withPriority = { id: "123", age: 30, email: "test@example.com", name: "Test" };
 
 // ============================================================================
 // SECTION 7: STRING KEYS - Should be sorted
 // ============================================================================
 
 const stringKeys = {
-  "zebra-key": "z",
   "apple-key": "a",
+  "banana-key": "b",
   "monkey-key": "m",
-  "banana-key": "b"
+  "zebra-key": "z"
 };
 
 // ============================================================================
 // SECTION 8: OBJECT DESTRUCTURING - Should be sorted
 // ============================================================================
 
-const { zebra, monkey, banana, apple } = { zebra: 1, monkey: 2, banana: 3, apple: 4 };
-const { username, email, age, id } = graphqlUser;
+const { apple, banana, monkey, zebra } = { apple: 4, banana: 3, monkey: 2, zebra: 1 };
+const { id, age, email, username } = graphqlUser;
 
 // ============================================================================
 // SECTION 9: OBJECTS WITH ARRAYS - Arrays should NOT be sorted
 // ============================================================================
 
 const dataWithArray = {
-  users: ["User3", "User1", "User2"],
+  id: "array-test",
   tags: ["zebra", "apple", "monkey"],
-  id: "array-test"
+  users: ["User3", "User1", "User2"]
 };
 
 // ============================================================================
@@ -153,18 +153,18 @@ const dataWithArray = {
 
 const arrayOfObjects = [
   {
-    name: "User One",
-    email: "user1@example.com",
-    _id: "mongo1",
+    __typename: "User",
     id: "1",
-    __typename: "User"
+    _id: "mongo1",
+    email: "user1@example.com",
+    name: "User One"
   },
   {
-    name: "User Two",
-    email: "user2@example.com",
-    _id: "mongo2",
+    __typename: "User",
     id: "2",
-    __typename: "User"
+    _id: "mongo2",
+    email: "user2@example.com",
+    name: "User Two"
   }
 ];
 
@@ -173,19 +173,19 @@ const arrayOfObjects = [
 // ============================================================================
 
 const eventHandlers = {
-  onSubmit: (event: any) => {
-    event.preventDefault();
-    console.log("Form submitted");
+  onChange: (value: string) => {
+    console.log("Value changed:", value);
   },
   onClick: () => {
     console.log("Clicked");
   },
-  onChange: (value: string) => {
-    console.log("Value changed:", value);
-  },
   onLoad: async () => {
     const data = await fetch("/api/data");
     return data.json();
+  },
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
   }
 };
 
@@ -194,20 +194,20 @@ const eventHandlers = {
 // ============================================================================
 
 const complexHandlers = {
-  onSubmit: (event: any) => {
-    event.preventDefault();
-    console.log("Form submitted");
-    const formData = new FormData(event.target);
-    console.log("Data:", formData);
-  },
-  onClick: () => {
-    console.log("Clicked");
-  },
   onChange: (value: string) => {
     console.log("Value changed:", value);
     if (value.length > 10) {
       console.log("Too long");
     }
+  },
+  onClick: () => {
+    console.log("Clicked");
+  },
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
+    const formData = new FormData(event.target);
+    console.log("Data:", formData);
   }
 };
 
@@ -239,19 +239,19 @@ class UserService {
 
 function getUserData() {
   return {
-    username: "john_doe",
-    email: "john@example.com",
+    id: "user-123",
     age: 30,
-    id: "user-123"
+    email: "john@example.com",
+    username: "john_doe"
   };
 }
 
 async function fetchData() {
   const response = await fetch("/api/data");
   return {
+    data: await response.json(),
     message: "Success",
-    statusCode: 200,
-    data: await response.json()
+    statusCode: 200
   };
 }
 
@@ -260,10 +260,10 @@ async function fetchData() {
 // ============================================================================
 
 export {
+  arrayOfObjects,
+  complexHandlers,
   eventHandlers,
   graphqlUser,
-  complexHandlers,
-  arrayOfObjects,
   nestedData
 };
 
@@ -331,18 +331,18 @@ if (age > 18) {
 // ============================================================================
 
 const packageConfig = {
-  version: "1.0.0",
-  scripts: {
-    test: "jest",
-    start: "node index.js",
-    build: "tsc"
-  },
-  name: "my-package",
-  description: "A test package",
   dependencies: {
-    react: "^18.0.0",
-    lodash: "^4.17.21"
-  }
+    lodash: "^4.17.21",
+    react: "^18.0.0"
+  },
+  description: "A test package",
+  name: "my-package",
+  scripts: {
+    build: "tsc",
+    start: "node index.js",
+    test: "jest"
+  },
+  version: "1.0.0"
 };
 
 // ============================================================================
@@ -351,11 +351,11 @@ const packageConfig = {
 
 const dynamicKey = "username";
 const computedProps = {
-  zebra: "last",
-  email: "john@example.com",
-  alpha: "first",
+  id: "user-456",
   [dynamicKey]: "john_doe",
-  id: "user-456"
+  alpha: "first",
+  email: "john@example.com",
+  zebra: "last"
 };
 
 // ============================================================================
@@ -363,10 +363,10 @@ const computedProps = {
 // ============================================================================
 
 const patterns = {
-  url: /^https?:\/\/.+/,
-  phone: /^\+?[\d\s-()]+$/,
+  id: /^[a-f0-9]{24}$/,
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  id: /^[a-f0-9]{24}$/
+  phone: /^\+?[\d\s-()]+$/,
+  url: /^https?:\/\/.+/
 };
 
 // ============================================================================
@@ -386,15 +386,15 @@ const documentedConfig = {
 // ============================================================================
 
 const mixedTypes = {
-  string: "value",
-  number: 42,
-  boolean: true,
-  null: null,
-  undefined: undefined,
+  id: "mixed-123",
   array: [1, 2, 3],
-  object: { nested: "value" },
+  boolean: true,
   function: () => console.log("test"),
-  id: "mixed-123"
+  null: null,
+  number: 42,
+  object: { nested: "value" },
+  string: "value",
+  undefined: undefined
 };
 
 // ============================================================================
@@ -405,18 +405,22 @@ const functionVariants = {
   traditionalFunction: function() {
     return "traditional";
   },
-  arrowFunction: () => "arrow",
-  asyncArrow: async () => "async arrow",
-  arrowWithBody: () => {
-    return "arrow with body";
-  },
   methodShorthand() {
     return "method";
   },
   asyncMethod: async () => {
     const result = await fetch("/api");
     return result;
-  }
+  },
+  asyncArrow: async () => ({
+    to: "test",
+    name: "async arrow",
+    id: 1
+  }),
+  arrowWithBody: () => {
+    return "arrow with body";
+  },
+  arrowFunction: () => "arrow"
 };
 
 // ============================================================================
@@ -446,3 +450,144 @@ const functionVariants = {
 //    2. id
 //    3. _id
 //    4. Everything else alphabetically
+
+// ============================================================================
+// SECTION 26: EXHAUSTIVE MULTILINE FUNCTIONS - Keys sorted, bodies preserved
+// ============================================================================
+
+const exhaustiveFunctions = {
+  submitForm: async (event: any) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const values = Object.fromEntries(formData);
+    
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Success:", data);
+      return data;
+    } catch (error) {
+      console.error("Submission error:", error);
+      throw error;
+    }
+  },
+  
+  processData: function(items: any[]) {
+    const results = [];
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.isValid) {
+        const processed = {
+          value: item.value * 2,
+          timestamp: Date.now(),
+          id: item.id
+        };
+        results.push(processed);
+      }
+    }
+    
+    return results;
+  },
+  
+  initialize() {
+    this.cache = new Map();
+    this.timeout = 5000;
+    this.retries = 3;
+    
+    console.log("Initialized with:");
+    console.log("- Cache:", this.cache);
+    console.log("- Timeout:", this.timeout);
+    console.log("- Retries:", this.retries);
+  },
+  
+  handleError: (error: Error) => {
+    console.error("Error occurred:", error.message);
+    console.error("Stack trace:", error.stack);
+    
+    const errorData = {
+      timestamp: new Date().toISOString(),
+      name: error.name,
+      message: error.message
+    };
+    
+    fetch("/api/errors", {
+      method: "POST",
+      body: JSON.stringify(errorData)
+    }).catch(err => {
+      console.error("Failed to report error:", err);
+    });
+    
+    return errorData;
+  },
+  
+  fetchWithRetry: async (url: string, maxRetries = 3) => {
+    let lastError;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        console.log(`Attempt ${attempt + 1} of ${maxRetries}`);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+        
+      } catch (error) {
+        lastError = error;
+        
+        if (attempt < maxRetries - 1) {
+          const delay = Math.pow(2, attempt) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+    
+    throw lastError;
+  },
+  
+  complexValidator: (data: any) => {
+    const errors: string[] = [];
+    
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      errors.push("Invalid email format");
+    }
+    
+    if (!data.password) {
+      errors.push("Password is required");
+    } else if (data.password.length < 8) {
+      errors.push("Password must be at least 8 characters");
+    }
+    
+    return {
+      errors: errors,
+      isValid: errors.length === 0
+    };
+  },
+  
+  arrayOperations: (numbers: number[]) => {
+    const squared = numbers.map(n => n * n);
+    const filtered = squared.filter(n => n > 10);
+    const sum = filtered.reduce((acc, n) => acc + n, 0);
+    
+    return {
+      sum: sum,
+      count: filtered.length,
+      average: sum / filtered.length
+    };
+  }
+};
