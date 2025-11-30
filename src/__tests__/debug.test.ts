@@ -113,5 +113,38 @@ describe('Debug eventHandlers', () => {
         expect(typenameIndex).toBeLessThan(idIndex);
         expect(idIndex).toBeLessThan(underscoreIdIndex);
     });
+
+    it('should preserve inline comments with their properties', () => {
+        const input = `{
+  timeout: 5000, // Maximum timeout in milliseconds
+  retries: 3, // Number of retry attempts
+  id: "config-456", // Unique identifier
+  enabled: true, // Feature flag
+  apiKey: "secret-key" // API authentication key
+}`;
+        
+        const result = _sortBlock(input);
+        
+        // Each property should keep its comment
+        expect(result).toContain('apiKey: "secret-key" // API authentication key');
+        expect(result).toContain('enabled: true, // Feature flag');
+        expect(result).toContain('id: "config-456", // Unique identifier');
+        expect(result).toContain('retries: 3, // Number of retry attempts');
+        expect(result).toContain('timeout: 5000, // Maximum timeout in milliseconds');
+        
+        // Check order: id (priority), then apiKey, enabled, retries, timeout (alphabetical)
+        const idPos = result.indexOf('id:');
+        const apiKeyPos = result.indexOf('apiKey');
+        const enabledPos = result.indexOf('enabled');
+        const retriesPos = result.indexOf('retries');
+        const timeoutPos = result.indexOf('timeout');
+        
+        // id has priority, so it comes first
+        expect(idPos).toBeLessThan(apiKeyPos);
+        // Then alphabetical
+        expect(apiKeyPos).toBeLessThan(enabledPos);
+        expect(enabledPos).toBeLessThan(retriesPos);
+        expect(retriesPos).toBeLessThan(timeoutPos);
+    });
 });
 

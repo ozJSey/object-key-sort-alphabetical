@@ -24,6 +24,7 @@
 
 ### 🎨 Perfect Formatting Preservation
 - **Zero formatting changes** - Your spaces, newlines, commas, and semicolons stay exactly as you wrote them
+- **Inline comments preserved** - Comments stay with their properties when sorted
 - **No linter conflicts** - We don't reformat, we just reorder
 - **Handles complex types** - `Record<string, string>`, `Array<Type>`, generics, arrow functions, multiline values
 
@@ -390,6 +391,30 @@ const props = {
 };
 ```
 
+### Objects with Inline Comments
+
+```javascript
+// Before
+const config = {
+  timeout: 5000, // Maximum timeout in milliseconds
+  retries: 3, // Number of retry attempts
+  id: "config-456", // Unique identifier
+  enabled: true, // Feature flag
+  apiKey: "secret-key" // API authentication key
+};
+
+// After
+const config = {
+  id: "config-456", // Unique identifier
+  apiKey: "secret-key", // API authentication key
+  enabled: true, // Feature flag
+  retries: 3, // Number of retry attempts
+  timeout: 5000 // Maximum timeout in milliseconds
+};
+```
+
+Comments stay with their properties when sorted!
+
 ## Why Use This Extension?
 
 - **Consistency** - All team members have objects sorted the same way
@@ -414,6 +439,15 @@ Contributions are welcome! Please follow these steps:
 MIT
 
 ## Changelog
+
+### 1.3.0
+
+**✨ New Feature: Inline Comment Preservation**
+- ✅ Inline comments now move with their properties when sorting
+- ✅ Example: `timeout: 5000, // Maximum timeout` stays together
+- ✅ Works with all property types (objects, functions, primitives)
+- 🧪 Added comprehensive test for comment preservation
+- 📦 All tests passing: 5/5 ✓
 
 ### 1.2.0
 

@@ -7,24 +7,24 @@
 // ============================================================================
 
 // Single-line imports (UNSORTED)
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { map, filter, reduce, forEach, some, every, find } from "lodash";
-import { zebra, monkey, banana, apple } from "animals";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { every, filter, find, forEach, map, reduce, some } from "lodash";
+import { apple, banana, monkey, zebra } from "animals";
 
 // Multi-line imports (UNSORTED)
 import {
-  ZebraComponent,
-  GammaComponent,
-  DeltaComponent,
+  AlphaComponent,
   BetaComponent,
-  AlphaComponent
+  DeltaComponent,
+  GammaComponent,
+  ZebraComponent
 } from "my-ui-library";
 
 import {
-  zulu,
-  charlie,
+  alpha,
   bravo,
-  alpha
+  charlie,
+  zulu
 } from "phonetic";
 
 // ============================================================================
@@ -65,23 +65,23 @@ interface NestedConfig {
 // ============================================================================
 
 const graphqlUser = {
-  name: "John Doe",
-  isActive: true,
-  email: "john@example.com",
-  city: "New York",
-  age: 30,
-  _id: "507f1f77bcf86cd799439011",
+  __typename: "User",
   id: "user-123",
-  __typename: "User"
+  _id: "507f1f77bcf86cd799439011",
+  age: 30,
+  city: "New York",
+  email: "john@example.com",
+  isActive: true,
+  name: "John Doe"
 };
 
 const anotherUser = {
-  zipCode: "12345",
-  name: "Jane",
-  age: 25,
-  _id: "mongo-456",
+  __typename: "User",
   id: "user-456",
-  __typename: "User"
+  _id: "mongo-456",
+  age: 25,
+  name: "Jane",
+  zipCode: "12345"
 };
 
 // ============================================================================
@@ -96,12 +96,12 @@ const lastName = "Smith";
 const age = 28;
 
 const shorthandObject = {
-  lastName,
-  firstName,
-  age,
-  _id,
+  __typename,
   id,
-  __typename
+  _id,
+  age,
+  firstName,
+  lastName
 };
 
 const zebra = "z";
@@ -109,11 +109,11 @@ const apple = "a";
 const monkey = "m";
 
 const anotherShorthand = {
-  zebra,
-  monkey,
-  apple,
+  __typename,
   id,
-  __typename
+  apple,
+  monkey,
+  zebra
 };
 
 // ============================================================================
@@ -121,80 +121,80 @@ const anotherShorthand = {
 // ============================================================================
 
 const nestedData = {
-  user: {
-    settings: {
-      theme: "dark",
-      notifications: true,
-      language: "en",
-      id: "settings-1"
-    },
-    profile: {
-      website: "example.com",
-      bio: "Developer",
-      avatar: "avatar.jpg",
-      id: "profile-1"
-    },
-    name: "Bob",
-    id: "user-789",
-    __typename: "User"
-  },
   metadata: {
-    version: 1,
+    __typename: "Metadata",
     created: "2024-01-01",
-    __typename: "Metadata"
+    version: 1
+  },
+  user: {
+    __typename: "User",
+    id: "user-789",
+    name: "Bob",
+    profile: {
+      id: "profile-1",
+      avatar: "avatar.jpg",
+      bio: "Developer",
+      website: "example.com"
+    },
+    settings: {
+      id: "settings-1",
+      language: "en",
+      notifications: true,
+      theme: "dark"
+    }
   }
 };
 
 const moreNested = {
-  simple: "data",
   outer: {
-    middle: "value",
+    id: "outer-1",
     inner: {
-      zebra: "z",
+      id: "inner-1",
       alpha: "a",
-      id: "inner-1"
+      zebra: "z"
     },
-    id: "outer-1"
-  }
+    middle: "value"
+  },
+  simple: "data"
 };
 
 // ============================================================================
 // SECTION 6: SINGLE-LINE OBJECTS - Should be sorted
 // ============================================================================
 
-const singleLine = { zebra: 1, beta: 4, alpha: 2, id: 3, __typename: "Single" };
-const anotherSingle = { z: 1, m: 3, b: 4, a: 2, id: 5 };
+const singleLine = { __typename: "Single", id: 3, alpha: 2, beta: 4, zebra: 1 };
+const anotherSingle = { id: 5, a: 2, b: 4, m: 3, z: 1 };
 
 // ============================================================================
 // SECTION 7: STRING KEYS - Should be sorted
 // ============================================================================
 
 const config = {
-  timeout: 5000,
-  "max-retries": 3,
-  enabled: true,
-  "base-url": "https://api.example.com",
-  "api-key": "secret-key-123",
-  _id: "config-mongo-id",
+  __typename: "Config",
   id: "config-1",
-  __typename: "Config"
+  _id: "config-mongo-id",
+  "api-key": "secret-key-123",
+  "base-url": "https://api.example.com",
+  enabled: true,
+  "max-retries": 3,
+  timeout: 5000
 };
 
 const settings = {
-  "z-index": 100,
-  "m-option": true,
+  id: "settings-1",
   "a-value": "test",
-  id: "settings-1"
+  "m-option": true,
+  "z-index": 100
 };
 
 // ============================================================================
 // SECTION 8: OBJECT DESTRUCTURING - Should be sorted
 // ============================================================================
 
-const { zebra: z1, monkey: m1, alpha: a1 } = { zebra: 1, monkey: 3, alpha: 2 };
-const { lastName: ln, firstName: fn, age: userAge } = graphqlUser;
+const { alpha: a1, monkey: m1, zebra: z1 } = { alpha: 2, monkey: 3, zebra: 1 };
+const { age: userAge, firstName: fn, lastName: ln } = graphqlUser;
 
-function ComponentWithProps({ userId, theme, onClose, className }: any) {
+function ComponentWithProps({ className, onClose, theme, userId }: any) {
   return null;
 }
 
@@ -203,34 +203,34 @@ function ComponentWithProps({ userId, theme, onClose, className }: any) {
 // ============================================================================
 
 const eventHandlers = {
-  onSubmit: (event: any) => {
-    event.preventDefault();
-    console.log("Form submitted");
+  onChange: (value: string) => {
+    console.log("Value changed:", value);
+  },
+  onClick: () => {
+    console.log("Clicked");
   },
   onLoad: async () => {
     const data = await fetch("/api/data");
     return data.json();
   },
-  onClick: () => {
-    console.log("Clicked");
-  },
-  onChange: (value: string) => {
-    console.log("Value changed:", value);
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
   }
 };
 
 const componentProps = {
-  type: "submit",
+  id: "complex-btn",
+  "aria-label": "Complex button",
+  children: ["Click", " ", "Me"],
+  className: "btn btn-primary",
+  "data-testid": "test-button",
+  disabled: false,
   onClick: (event) => {
     event.preventDefault();
     return { handled: true };
   },
-  id: "complex-btn",
-  disabled: false,
-  "data-testid": "test-button",
-  className: "btn btn-primary",
-  children: ["Click", " ", "Me"],
-  "aria-label": "Complex button"
+  type: "submit"
 };
 
 // ============================================================================
@@ -238,14 +238,14 @@ const componentProps = {
 // ============================================================================
 
 const dataWithArrays = {
-  users: [
-    { name: "Alice", id: "1" },
-    { name: "Bob", id: "2" }
-  ],
-  total: 2,
-  tags: ["javascript", "typescript"],
+  __typename: "UserList",
   id: "list-1",
-  __typename: "UserList"
+  tags: ["javascript", "typescript"],
+  total: 2,
+  users: [
+    { id: "1", name: "Alice" },
+    { id: "2", name: "Bob" }
+  ]
 };
 
 // ============================================================================
@@ -253,29 +253,29 @@ const dataWithArrays = {
 // ============================================================================
 
 const apiClient = {
-  timeout: 5000,
-  post: async (url: string, data: any) => {
-    return fetch(url, { method: "POST", body: JSON.stringify(data) });
+  id: "api-client-1",
+  baseUrl: "https://api.example.com",
+  delete: async (url: string) => {
+    return fetch(url, { method: "DELETE" });
   },
   get: async (url: string) => {
     return fetch(url, { method: "GET" });
   },
-  delete: async (url: string) => {
-    return fetch(url, { method: "DELETE" });
+  post: async (url: string, data: any) => {
+    return fetch(url, { method: "POST", body: JSON.stringify(data) });
   },
-  baseUrl: "https://api.example.com",
-  id: "api-client-1"
+  timeout: 5000
 };
 
 const withRegularFunction = {
-  zebra: "last",
-  process: function() {
-    console.log("processing");
-  },
+  alpha: "first",
   calculate: function(a: number, b: number) {
     return a + b;
   },
-  alpha: "first"
+  process: function() {
+    console.log("processing");
+  },
+  zebra: "last"
 };
 
 // ============================================================================
@@ -291,9 +291,9 @@ type ApiConfigWithGenerics = {
 };
 
 const configWithGenerics: Record<string, any> = {
-  zebra: "last",
+  id: "config-123",
   alpha: "first",
-  id: "config-123"
+  zebra: "last"
 };
 
 // ============================================================================
@@ -301,29 +301,29 @@ const configWithGenerics: Record<string, any> = {
 // ============================================================================
 
 const complexApiResponse = {
-  timestamp: Date.now(),
-  statusCode: 200,
-  message: "Success",
   data: {
+    __typename: "UserConnection",
+    total: 2,
     users: [
       {
-        name: "User One",
-        email: "user1@example.com",
-        _id: "mongo1",
+        __typename: "User",
         id: "1",
-        __typename: "User"
+        _id: "mongo1",
+        email: "user1@example.com",
+        name: "User One"
       },
       {
-        name: "User Two",
-        email: "user2@example.com",
-        _id: "mongo2",
+        __typename: "User",
         id: "2",
-        __typename: "User"
+        _id: "mongo2",
+        email: "user2@example.com",
+        name: "User Two"
       }
-    ],
-    total: 2,
-    __typename: "UserConnection"
-  }
+    ]
+  },
+  message: "Success",
+  statusCode: 200,
+  timestamp: Date.now()
 };
 
 // ============================================================================
@@ -332,29 +332,29 @@ const complexApiResponse = {
 
 function getUserData() {
   return {
-    name: "John",
-    email: "john@example.com",
-    age: 30,
+    __typename: "User",
     id: "user-123",
-    __typename: "User"
+    age: 30,
+    email: "john@example.com",
+    name: "John"
   };
 }
 
 const getConfig = () => {
   return {
-    timeout: 5000,
-    retries: 3,
+    apiKey: "secret",
     enabled: true,
-    apiKey: "secret"
+    retries: 3,
+    timeout: 5000
   };
 };
 
 async function fetchData() {
   const response = await fetch("/api/data");
   return {
-    statusCode: 200,
+    data: await response.json(),
     message: "Success",
-    data: await response.json()
+    statusCode: 200
   };
 }
 
@@ -363,12 +363,12 @@ async function fetchData() {
 // ============================================================================
 
 export {
-  userSettings,
-  graphqlUser,
-  eventHandlers,
-  complexApiResponse,
+  apiClient,
   applicationConfig,
-  apiClient
+  complexApiResponse,
+  eventHandlers,
+  graphqlUser,
+  userSettings
 };
 
 // ============================================================================
@@ -382,7 +382,7 @@ const manualOrder1 = { zebra: 1, apple: 2, monkey: 3, banana: 4 };
 const manualOrder2 = { z: 5, a: 6, m: 7, b: 8 };
 
 // This one WILL be sorted (no ignore comment)
-const willBeSorted = { zebra: 9, monkey: 11, banana: 12, apple: 10 };
+const willBeSorted = { apple: 10, banana: 12, monkey: 11, zebra: 9 };
 
 // ============================================================================
 // SECTION 17: EMPTY & SINGLE PROPERTY - Should NOT be modified
@@ -490,18 +490,18 @@ class UserService {
 // ============================================================================
 
 const packageConfig = {
-  "version": "1.0.0",
-  "scripts": {
-    "test": "jest",
-    "start": "node index.js",
-    "build": "tsc"
-  },
-  "name": "my-package",
-  "description": "A test package",
   "dependencies": {
-    "react": "^18.0.0",
-    "lodash": "^4.17.21"
-  }
+    "lodash": "^4.17.21",
+    "react": "^18.0.0"
+  },
+  "description": "A test package",
+  "name": "my-package",
+  "scripts": {
+    "build": "tsc",
+    "start": "node index.js",
+    "test": "jest"
+  },
+  "version": "1.0.0"
 };
 
 // ============================================================================
@@ -510,11 +510,11 @@ const packageConfig = {
 
 const dynamicKey = "username";
 const computedProps = {
-  zebra: "last",
-  email: "john@example.com",
-  alpha: "first",
+  id: "user-456",
   [dynamicKey]: "john_doe",
-  id: "user-456"
+  alpha: "first",
+  email: "john@example.com",
+  zebra: "last"
 };
 
 // ============================================================================
@@ -522,10 +522,10 @@ const computedProps = {
 // ============================================================================
 
 const patterns = {
-  url: /^https?:\/\/.+/,
-  phone: /^\+?[\d\s-()]+$/,
+  id: /^[a-f0-9]{24}$/,
   email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  id: /^[a-f0-9]{24}$/
+  phone: /^\+?[\d\s-()]+$/,
+  url: /^https?:\/\/.+/
 };
 
 // ============================================================================
@@ -533,20 +533,20 @@ const patterns = {
 // ============================================================================
 
 const complexHandlers = {
-  onSubmit: (event: any) => {
-    event.preventDefault();
-    console.log("Form submitted");
-    const formData = new FormData(event.target);
-    console.log("Data:", formData);
-  },
-  onClick: () => {
-    console.log("Clicked");
-  },
   onChange: (value: string) => {
     console.log("Value changed:", value);
     if (value.length > 10) {
       console.log("Too long");
     }
+  },
+  onClick: () => {
+    console.log("Clicked");
+  },
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
+    const formData = new FormData(event.target);
+    console.log("Data:", formData);
   }
 };
 

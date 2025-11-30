@@ -130,9 +130,27 @@ const _findPropertyRanges = (content: string) => {
             if (c === '>' && prev !== '=') depth--;
             
             if (c === ',' && depth === 0) {
-                ranges.push({ start: propStart, end: i });
+                // Property ends at comma, but we need to check if there's an inline comment after it
+                let propEnd = i;
                 
-                propStart = i + 1;
+                // Look ahead after the comma for inline comment
+                let checkPos = i + 1;
+                // Skip spaces/tabs after comma
+                while (checkPos < content.length && (content[checkPos] === ' ' || content[checkPos] === '\t')) {
+                    checkPos++;
+                }
+                
+                // If we find //, include everything up to the newline as part of this property
+                if (checkPos + 1 < content.length && content[checkPos] === '/' && content[checkPos + 1] === '/') {
+                    // Find the end of the line
+                    let lineEnd = content.indexOf('\n', checkPos);
+                    if (lineEnd === -1) lineEnd = content.length;
+                    propEnd = lineEnd;
+                }
+                
+                ranges.push({ start: propStart, end: propEnd });
+                
+                propStart = propEnd + 1;
                 while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
                     propStart++;
                 }
