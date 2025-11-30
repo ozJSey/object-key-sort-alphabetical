@@ -25,6 +25,7 @@ const _isSortableContext = (text: string, bracePos: number) => {
     
     const lookback = text.substring(Math.max(0, bracePos - 100), bracePos);
     if (/import\s*$/.test(lookback)) return true;
+    if (/export\s*$/.test(lookback)) return true;
     if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
     if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
     
