@@ -46,66 +46,8 @@ const _findClosing = (text: string, start: number) => {
     return -1;
 };
 
-const _extractProperties = (blockContent: string) => {
-    const properties: Array<{ start: number; end: number; key: string; full: string }> = [];
-    let current = '';
-    let currentStart = 0;
-    let depth = 0;
-    let inString = false;
-    let stringChar = '';
-    
-    for (let i = 0; i < blockContent.length; i++) {
-        const c = blockContent[i];
-        const prev = i > 0 ? blockContent[i - 1] : '';
-        
-        if (!inString && (c === '"' || c === "'" || c === '`')) {
-            inString = true;
-            stringChar = c;
-        } else if (inString && c === stringChar && prev !== '\\') {
-            inString = false;
-        } else if (!inString) {
-            if (c === '{' || c === '[' || c === '(') depth++;
-            if (c === '}' || c === ']' || c === ')') depth--;
-            
-            if ((c === ',' || c === ';') && depth === 0) {
-                const prop = current.trim();
-                if (prop) {
-                    const key = _extractKey(prop);
-                    if (key) {
-                        properties.push({
-                            start: currentStart,
-                            end: i,
-                            key,
-                            full: current
-                        });
-                    }
-                }
-                current = '';
-                currentStart = i + 1;
-                continue;
-            }
-        }
-        current += c;
-    }
-    
-    if (current.trim()) {
-        const prop = current.trim();
-        const key = _extractKey(prop);
-        if (key) {
-            properties.push({
-                start: currentStart,
-                end: blockContent.length,
-                key,
-                full: current
-            });
-        }
-    }
-    
-    return properties;
-};
-
-const _extractKey = (property: string) => {
-    const trimmed = property.trim();
+const _extractKey = (propertyText: string) => {
+    const trimmed = propertyText.trim();
     
     const colonMatch = trimmed.match(/^["']?([^:"'\s]+)["']?\s*:/);
     if (colonMatch) return colonMatch[1];
@@ -123,49 +65,110 @@ const _priority = (key: string) => {
     return 0;
 };
 
+const _findPropertyRanges = (content: string) => {
+    const ranges: Array<{ start: number; end: number }> = [];
+    let depth = 0;
+    let inString = false;
+    let stringChar = '';
+    let propStart = 0;
+    
+    while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
+        propStart++;
+    }
+    
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        const prev = i > 0 ? content[i - 1] : '';
+        
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            stringChar = c;
+        } else if (inString && c === stringChar && prev !== '\\') {
+            inString = false;
+        } else if (!inString) {
+            if (c === '{' || c === '[' || c === '(') depth++;
+            if (c === '}' || c === ']' || c === ')') depth--;
+            
+            if ((c === ',' || c === ';') && depth === 0) {
+                ranges.push({ start: propStart, end: i });
+                
+                propStart = i + 1;
+                while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
+                    propStart++;
+                }
+            }
+        }
+    }
+    
+    let propEnd = content.length;
+    while (propEnd > propStart && /[\s\n]/.test(content[propEnd - 1])) {
+        propEnd--;
+    }
+    
+    if (propStart < propEnd) {
+        ranges.push({ start: propStart, end: propEnd });
+    }
+    
+    return ranges;
+};
+
 const _sortBlock = (fullBlock: string) => {
-    const openBrace = fullBlock[0];
-    const closeBrace = fullBlock[fullBlock.length - 1];
     const content = fullBlock.substring(1, fullBlock.length - 1);
+    const ranges = _findPropertyRanges(content);
     
-    const props = _extractProperties(content);
-    if (props.length <= 1) return fullBlock;
+    if (ranges.length <= 1) return fullBlock;
     
-    const sorted = [...props].sort((a, b) => {
+    const properties: Array<{ text: string; key: string; range: { start: number; end: number } }> = [];
+    
+    ranges.forEach(range => {
+        const text = content.substring(range.start, range.end);
+        const key = _extractKey(text);
+        if (key) {
+            properties.push({ text, key, range });
+        }
+    });
+    
+    if (properties.length <= 1) return fullBlock;
+    
+    const sorted = [...properties].sort((a, b) => {
         const diff = _priority(a.key) - _priority(b.key);
         return diff !== 0 ? diff : a.key.localeCompare(b.key);
     });
     
-    const isSorted = props.every((p, i) => p.key === sorted[i].key);
+    const isSorted = properties.every((p, i) => p.key === sorted[i].key);
     if (isSorted) return fullBlock;
     
-    const positionsWithIndex = props.map((p, idx) => ({ 
-        start: p.start, 
-        end: p.end, 
-        originalIndex: idx 
-    }));
-    positionsWithIndex.sort((a, b) => b.start - a.start);
+    let result = fullBlock[0];
+    let lastEnd = 0;
     
-    let result = content;
-    positionsWithIndex.forEach(pos => {
-        const newContent = sorted[pos.originalIndex].full;
-        result = result.substring(0, pos.start) + newContent + result.substring(pos.end);
+    properties.forEach((prop, idx) => {
+        result += content.substring(lastEnd, prop.range.start);
+        result += sorted[idx].text;
+        lastEnd = prop.range.end;
     });
     
-    return openBrace + result + closeBrace;
+    result += content.substring(lastEnd);
+    result += fullBlock[fullBlock.length - 1];
+    
+    return result;
 };
 
 const _findIgnoreComments = (text: string) => {
     const positions: number[] = [];
-    const lines = text.split('\n');
     let pos = 0;
+    let i = 0;
     
-    lines.forEach(line => {
-        if (line.includes('auto-sort-ignore-next-line') || line.includes('auto-sort-ignore')) {
-            positions.push(pos + line.length + 1);
+    while (i < text.length) {
+        if (text.substring(i, i + 24) === 'auto-sort-ignore-next-line' || 
+            text.substring(i, i + 16) === 'auto-sort-ignore') {
+            let lineEnd = text.indexOf('\n', i);
+            if (lineEnd === -1) lineEnd = text.length;
+            positions.push(lineEnd + 1);
         }
-        pos += line.length + 1;
-    });
+        const nextNewline = text.indexOf('\n', i);
+        if (nextNewline === -1) break;
+        i = nextNewline + 1;
+    }
     
     return positions;
 };

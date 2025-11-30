@@ -1,17 +1,18 @@
 # Object Sort Alphabetical
 
-**Automatically sorts objects and flat arrays alphabetically on save, with smart prioritization for `__typename`, `id`, and `_id`.**
+**Automatically sorts objects alphabetically on save, with smart prioritization for `__typename`, `id`, and `_id`.**
 
 ![Demo](assets/demo.gif)
 
 ## Features
 
-- ✅ **Automatic sorting on save** - Objects, interfaces, types, and arrays are sorted when you save
+- ✅ **Automatic sorting on save** - Objects, interfaces, types, and imports are sorted when you save
 - ✅ **Priority sorting** - `__typename`, `id`, and `_id` always come first (perfect for GraphQL)
 - ✅ **Nested objects** - Recursively sorts all nested objects
 - ✅ **TypeScript support** - Handles interfaces with semicolons and types
-- ✅ **Array sorting** - Sorts primitive arrays (strings, numbers, variables)
+- ✅ **Import sorting** - Named imports are sorted alphabetically
 - ✅ **Preserves formatting** - Keeps your exact spacing, newlines, commas, and semicolons
+- ✅ **Smart context detection** - Only sorts object literals, never arrays, destructuring, or function params
 - ✅ **Ignore comments** - Skip sorting with `// auto-sort-ignore` or `// auto-sort-ignore-next-line`
 
 ## Installation
@@ -79,18 +80,16 @@ interface User {
 }
 ```
 
-### Arrays
+### Imports
 
 **Before:**
-```javascript
-const fruits = ["zebra", "apple", "banana", "monkey"];
-const vars = [lastName, firstName, age, id];
+```typescript
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 ```
 
 **After:**
-```javascript
-const fruits = ["apple", "banana", "monkey", "zebra"];
-const vars = [age, firstName, id, lastName];
+```typescript
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 ```
 
 ### Nested Objects
@@ -181,18 +180,22 @@ Configure the extension in your VS Code settings:
 
 ### ✅ Sorted
 
-- Object literals
+- Object literals (`const obj = { ... }`)
 - TypeScript interfaces
 - TypeScript types
+- Named imports (`import { ... }`)
 - Nested objects (recursively)
-- Flat arrays with primitives (strings, numbers, variables, booleans)
+- Objects inside arrays
 - Shorthand properties
 - String keys (`"api-key"`)
 
-### ❌ Not Sorted
+### ❌ Never Sorted (Order Matters!)
 
-- Arrays with objects (object order preserved, but objects inside are sorted)
-- Function bodies
+- **Arrays** - Element order is preserved (execution order, data structure)
+- **Destructuring** - Positional meaning preserved (`const [a, b] = arr`)
+- **Function parameters** - Positional arguments preserved
+- **Class bodies** - Structure and syntax preserved
+- **Switch cases** - Execution order preserved
 - Computed property names
 - Blocks with `// auto-sort-ignore` comment
 
@@ -272,6 +275,22 @@ Contributions are welcome! Please follow these steps:
 MIT
 
 ## Changelog
+
+### 1.3.0
+
+- 🎯 **BREAKING**: Removed array sorting - arrays are never sorted as order matters for execution and data structure
+- ✨ Complete rewrite of sorting logic using pure string operations (the "apartment building" approach)
+- ✨ Perfect formatting preservation - all whitespace, newlines, commas, and semicolons stay exactly as written
+- ✨ Smart context detection - only sorts object literals, interfaces, types, and imports
+- 🐛 Fixed: Destructuring is never sorted (positional meaning preserved)
+- 🐛 Fixed: Function parameters are never sorted (positional arguments preserved)
+- 🐛 Fixed: Class bodies are never sorted (structure and syntax preserved)
+- 🐛 Fixed: Arrays preserve execution order and data structure
+- 📝 Updated documentation to clarify what gets sorted and what doesn't
+
+### 1.2.0
+
+- Major fix release with improved sorting logic
 
 ### 1.0.1
 
