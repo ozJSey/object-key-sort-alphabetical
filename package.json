@@ -2,7 +2,7 @@
   "name": "object-sort-alphabetical",
   "displayName": "Object Sort Alphabetical",
   "description": "Automatically sort object properties alphabetically on save",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "ozJSey",
   "icon": "assets/icon.png",
   "engines": {
@@ -46,16 +46,22 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src --ext ts",
     "package": "vsce package"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.x",
     "@types/vscode": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^6.x",
     "@typescript-eslint/parser": "^6.x",
     "@vscode/vsce": "^2.22.0",
     "eslint": "^8.x",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
     "typescript": "^5.3.0"
   }
 }
