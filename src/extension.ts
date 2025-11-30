@@ -6,27 +6,21 @@ const _isSortableContext = (text: string, bracePos: number) => {
     
     if (i < 0) return true;
     
+    const lookback = text.substring(Math.max(0, bracePos - 200), bracePos);
+    
     if (text[i] === '>') {
-        if (i > 0 && text[i - 1] === '=') return false;
+        if (/=>\s*$/.test(lookback)) return false;
         return false;
     }
     
     if (text[i] === ')') {
-        let j = i + 1;
-        while (j < bracePos && /[\s\n]/.test(text[j])) j++;
-        if (text[j] === '=' && text[j + 1] === '>') return false;
-        
-        const lookback = text.substring(Math.max(0, bracePos - 200), bracePos);
-        if (/\b(if|while|for|switch|catch)\s*\([^)]*\)\s*$/.test(lookback)) return false;
-        if (/\bfunction\s+\w+\s*\([^)]*\)\s*$/.test(lookback)) return false;
-        if (/\bfunction\s*\([^)]*\)\s*$/.test(lookback)) return false;
-        
+        if (/\b(if|while|for|switch|catch|function)\s*\([^)]*\)\s*$/.test(lookback)) return false;
+        if (/\)\s*=>\s*$/.test(lookback)) return false;
         return false;
     }
     
     if (text[i] === '=') {
         if (i > 0 && text[i - 1] === '=') return false;
-        if (i < text.length - 1 && text[i + 1] === '>') return false;
         return true;
     }
     
@@ -34,13 +28,12 @@ const _isSortableContext = (text: string, bracePos: number) => {
     if (text[i] === ',') return true;
     if (text[i] === '[') return true;
     
-    const lookback = text.substring(Math.max(0, bracePos - 100), bracePos);
     if (/import\s*$/.test(lookback)) return true;
     if (/export\s*$/.test(lookback)) return true;
     if (/return\s*$/.test(lookback)) return true;
     if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
     if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
-    
+    if (/\b(const|let|var)\s+\{/.test(lookback)) return true;
     if (/\b(const|let|var)\s+\w+\s*=\s*$/.test(lookback)) return true;
     
     if (/\bclass\s+\w+/.test(lookback)) return false;
