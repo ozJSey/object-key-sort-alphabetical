@@ -146,16 +146,16 @@ const nestedData = {
     id: "user-789",
     name: "Bob",
     profile: {
-      website: "example.com",
-      bio: "Developer",
       id: "profile-1",
-      avatar: "avatar.jpg"
+      avatar: "avatar.jpg",
+      bio: "Developer",
+      website: "example.com"
     },
     settings: {
-      theme: "dark",
-      notifications: true,
+      id: "settings-1",
       language: "en",
-      id: "settings-1"
+      notifications: true,
+      theme: "dark"
     }
   }
 };
@@ -256,18 +256,18 @@ const apiResponse = {
     total: 2,
     users: [
       {
-        email: "user1@example.com",
-        name: "User One",
-        _id: "mongo1",
+        __typename: "User",
         id: "1",
-        __typename: "User"
+        _id: "mongo1",
+        email: "user1@example.com",
+        name: "User One"
       },
       {
-        email: "user2@example.com",
-        name: "User Two",
-        _id: "mongo2",
+        __typename: "User",
         id: "2",
-        __typename: "User"
+        _id: "mongo2",
+        email: "user2@example.com",
+        name: "User Two"
       }
     ]
   },
@@ -283,10 +283,10 @@ const anotherResponse = {
     count: 1,
     products: [
       {
-        price: 99,
-        name: "Product A",
+        __typename: "Product",
         id: "prod-1",
-        __typename: "Product"
+        name: "Product A",
+        price: 99
       }
     ]
   },
