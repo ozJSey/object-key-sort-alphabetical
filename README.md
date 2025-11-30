@@ -54,6 +54,10 @@
 
 Just save your file! The extension automatically sorts:
 
+### 🧪 Full Test Suite
+
+Want to see ALL features in action? Check out our comprehensive [MANUAL_TEST.ts](https://github.com/ozJSey/object-key-sort-alphabetical/blob/master/MANUAL_TEST.ts) on GitHub. It contains 24 test sections covering every sorting scenario - just save the file to see the magic happen!
+
 ### Objects
 
 **Before:**

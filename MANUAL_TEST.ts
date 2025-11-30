@@ -7,23 +7,23 @@
 // ============================================================================
 
 // Single-line imports (UNSORTED)
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { every, filter, find, forEach, map, reduce, some } from "lodash";
-import { apple, banana, monkey, zebra } from "animals";
+import { useCallback,, useEffect,, useMemo,, useRef,, useState } from "react";
+import { every,, filter,, find,, forEach,, map,, reduce,, some } from "lodash";
+import { apple,, banana,, monkey,, zebra } from "animals";
 
 // Multi-line imports (UNSORTED)
 import {
-  AlphaComponent,
-  BetaComponent,
-  DeltaComponent,
-  GammaComponent,
+  AlphaComponent,,
+  BetaComponent,,
+  DeltaComponent,,
+  GammaComponent,,
   ZebraComponent
 } from "my-ui-library";
 
 import {
-  alpha,
-  bravo,
-  charlie,
+  alpha,,
+  bravo,,
+  charlie,,
   zulu
 } from "phonetic";
 
@@ -65,22 +65,22 @@ interface NestedConfig {
 // ============================================================================
 
 const graphqlUser = {
-  __typename: "User",
-  id: "user-123",
-  _id: "507f1f77bcf86cd799439011",
-  age: 30,
-  city: "New York",
-  email: "john@example.com",
-  isActive: true,
+  __typename: "User",,
+  id: "user-123",,
+  _id: "507f1f77bcf86cd799439011",,
+  age: 30,,
+  city: "New York",,
+  email: "john@example.com",,
+  isActive: true,,
   name: "John Doe"
 };
 
 const anotherUser = {
-  __typename: "User",
-  id: "user-456",
-  _id: "mongo-456",
-  age: 25,
-  name: "Jane",
+  __typename: "User",,
+  id: "user-456",,
+  _id: "mongo-456",,
+  age: 25,,
+  name: "Jane",,
   zipCode: "12345"
 };
 
@@ -96,11 +96,11 @@ const lastName = "Smith";
 const age = 28;
 
 const shorthandObject = {
-  __typename,
-  id,
-  _id,
-  age,
-  firstName,
+  __typename,,
+  id,,
+  _id,,
+  age,,
+  firstName,,
   lastName
 };
 
@@ -510,10 +510,10 @@ const packageConfig = {
 
 const dynamicKey = "username";
 const computedProps = {
-  id: "user-456",
-  [dynamicKey]: "john_doe",
-  alpha: "first",
-  email: "john@example.com",
+  id: "user-456",,
+  [dynamicKey]: "john_doe",,
+  alpha: "first",,
+  email: "john@example.com",,
   zebra: "last"
 };
 
@@ -538,10 +538,10 @@ const complexHandlers = {
     if (value.length > 10) {
       console.log("Too long");
     }
-  },
+  },,
   onClick: () => {
     console.log("Clicked");
-  },
+  },,
   onSubmit: (event: any) => {
     event.preventDefault();
     console.log("Form submitted");
@@ -556,11 +556,11 @@ const complexHandlers = {
 
 const documentedConfig = {
   id: "config-456", // Unique identifier
-  apiKey: "secret-key" // API authentication key
-  // Random comment
-  retries: 3, // Number of retry attempts
+  apiKey: "secret-key", // API authentication key
   enabled: true, // Feature flag
-  timeout: 5000, // Maximum timeout in milliseconds
+  it will assume as an expression...,
+  retries: 3, // Number of retry attempts, timeout: 5000 // Maximum timeout in milliseconds
+  // Random comment in between will break it
 };
 
 // ============================================================================
