@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
+export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
     const edits: vscode.TextEdit[] = [];
     const blocks: Array<{ start: number; end: number; depth: number; isArray: boolean }> = [];
     const ignorePositions = _findIgnoreComments(text);
@@ -61,7 +61,7 @@ const _findIgnoreComments = (text: string) => {
 const _shouldIgnoreBlock = (text: string, blockStart: number, ignorePositions: number[]) => {
     return ignorePositions.some(ignorePos => {
         const distance = blockStart - ignorePos;
-        return distance >= 0 && distance < 200;
+        return distance >= 0 && distance < 50;
     });
 };
 
@@ -151,11 +151,11 @@ const _findClosing = (text: string, start: number, openChar = '{', closeChar = '
 
 const _sortIfNeeded = (block: string) => {
     const inner = block.slice(1, -1);
-    const items = _splitItems(inner);
+    const items = _splitItemsWithSeparators(inner);
     
     if (items.length <= 1) return block;
     
-    const contents = items.map(item => item.replace(/^[\s\n]+/, '').replace(/[\s\n,;]+$/, ''));
+    const contents = items.map(item => item.content);
     const sorted = [...contents].sort((a, b) => {
         const keyA = _getKey(a);
         const keyB = _getKey(b);
@@ -165,16 +165,72 @@ const _sortIfNeeded = (block: string) => {
     
     if (contents.every((c, i) => _getKey(c) === _getKey(sorted[i]))) return block;
     
-    const rebuilt = items.map((originalItem, i) => {
-        const leading = originalItem.match(/^[\s\n]*/)?.[0] || '';
-        const trailing = originalItem.match(/[\s\n,;]*$/)?.[0] || '';
-        return leading + sorted[i] + trailing;
+    const rebuilt = items.map((item, i) => {
+        const newItem = item.leading + sorted[i] + item.separator;
+        if (i === items.length - 1) {
+            return newItem + item.trailing;
+        }
+        return newItem;
     });
     
-    const firstItemTrailing = items[0].match(/[\s\n,;]*$/)?.[0] || '';
-    const separator = firstItemTrailing.includes(';') ? ';' : ',';
+    return block[0] + rebuilt.join('') + block[block.length - 1];
+};
+
+const _splitItemsWithSeparators = (text: string) => {
+    const items: Array<{ leading: string; content: string; separator: string; trailing: string }> = [];
+    let current = '';
+    let depth = 0;
+    let inString = false;
+    let quote = '';
     
-    return '{' + rebuilt.join(separator) + '}';
+    text.split('').forEach((c, i) => {
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            quote = c;
+        } else if (inString && c === quote && text[i - 1] !== '\\') {
+            inString = false;
+        } else if (!inString && (c === '{' || c === '[' || c === '(')) {
+            depth++;
+        } else if (!inString && (c === '}' || c === ']' || c === ')')) {
+            depth--;
+        } else if (!inString && (c === ',' || c === ';') && depth === 0) {
+            const leadingMatch = current.match(/^([\s\n]*)/);
+            const leading = leadingMatch ? leadingMatch[1] : '';
+            const withoutLeading = current.substring(leading.length);
+            
+            const trailingSpaceMatch = withoutLeading.match(/([\s\n]*)$/);
+            const trailingSpace = trailingSpaceMatch ? trailingSpaceMatch[1] : '';
+            const content = withoutLeading.substring(0, withoutLeading.length - trailingSpace.length);
+            
+            items.push({
+                leading,
+                content,
+                separator: trailingSpace + c,
+                trailing: ''
+            });
+            current = '';
+            return;
+        }
+        current += c;
+    });
+    
+    if (current.trim()) {
+        const leadingMatch = current.match(/^([\s\n]*)/);
+        const leading = leadingMatch ? leadingMatch[1] : '';
+        const withoutLeading = current.substring(leading.length);
+        const trailingMatch = withoutLeading.match(/([\s\n]*)$/);
+        const trailing = trailingMatch ? trailingMatch[1] : '';
+        const content = withoutLeading.substring(0, withoutLeading.length - trailing.length);
+        
+        items.push({
+            leading,
+            content,
+            separator: '',
+            trailing
+        });
+    }
+    
+    return items;
 };
 
 const _splitItems = (text: string) => {
@@ -221,7 +277,7 @@ const _priority = (key: string) => {
     return 0;
 };
 
-const _applyEdits = async (editor: vscode.TextEditor, edits: vscode.TextEdit[]) => {
+export const _applyEdits = async (editor: vscode.TextEditor, edits: vscode.TextEdit[]) => {
     await edits.reduce(async (promise, edit) => {
         await promise;
         await editor.edit(builder => builder.replace(edit.range, edit.newText), 
