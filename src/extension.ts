@@ -7,6 +7,9 @@ export const _isObjectLiteral = (content: string) => {
     const trimmed = content.trim();
     if (trimmed.length === 0) return false;
     
+    // Skip objects with inline comments - they break the apartment building pattern
+    if (/,\s*\/\//.test(trimmed)) return false;
+    
     let depth = 0;
     let inString = false;
     let stringChar = '';
@@ -130,28 +133,9 @@ const _findPropertyRanges = (content: string) => {
             if (c === '>' && prev !== '=') depth--;
             
             if (c === ',' && depth === 0) {
-                // Look ahead after the comma for inline comment
-                let checkPos = i + 1;
-                // Skip spaces/tabs after comma
-                while (checkPos < content.length && (content[checkPos] === ' ' || content[checkPos] === '\t')) {
-                    checkPos++;
-                }
+                ranges.push({ start: propStart, end: i });
                 
-                let propEnd = i; // Default: up to (not including) the comma
-                
-                // If we find //, include comma + spaces + comment as part of this property
-                if (checkPos + 1 < content.length && content[checkPos] === '/' && content[checkPos + 1] === '/') {
-                    // Find the end of the line
-                    let lineEnd = content.indexOf('\n', checkPos);
-                    if (lineEnd === -1) lineEnd = content.length;
-                    // Include everything from propStart up to (not including) the newline
-                    // This includes: property + comma + spaces + comment
-                    propEnd = lineEnd;
-                }
-                
-                ranges.push({ start: propStart, end: propEnd });
-                
-                propStart = propEnd + 1;
+                propStart = i + 1;
                 while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
                     propStart++;
                 }
@@ -236,34 +220,8 @@ export const _sortBlock = (fullBlock: string) => {
     let lastEnd = 0;
     
     properties.forEach((prop, idx) => {
-        const apartment = content.substring(lastEnd, prop.range.start);
-        result += apartment;
-        
-        // Add the sorted property text
-        let propText = sorted[idx].text;
-        
-        // If this is not the last property, ensure it has a comma
-        // (comments are already included in the text if present)
-        if (idx < properties.length - 1) {
-            // Check if the text already ends with a comma (before any comment)
-            const hasComma = /,\s*(\/\/.*)?$/.test(propText);
-            if (!hasComma) {
-                // Find where to insert the comma (before any comment)
-                const commentMatch = propText.match(/(\s*\/\/.*)$/);
-                if (commentMatch) {
-                    // Insert comma before the comment
-                    propText = propText.substring(0, commentMatch.index) + ',' + commentMatch[0];
-                } else {
-                    // No comment, just add comma at the end
-                    propText = propText + ',';
-                }
-            }
-        } else {
-            // Last property - remove trailing comma if present
-            propText = propText.replace(/,(\s*\/\/.*)?$/, '$1');
-        }
-        
-        result += propText;
+        result += content.substring(lastEnd, prop.range.start);
+        result += sorted[idx].text;
         lastEnd = prop.range.end;
     });
     

@@ -33,6 +33,7 @@
 - **Array destructuring preserved** - `const [a, b] = arr` stays positional
 - **Function params preserved** - Positional arguments stay in order
 - **Class bodies untouched** - Structure and syntax preserved
+- **Objects with inline comments skipped** - Preserves documentation (see below)
 - **Ignore comments** - Skip sorting with `// auto-sort-ignore` or `// auto-sort-ignore-next-line`
 
 ## Installation
@@ -395,10 +396,10 @@ const props = {
 };
 ```
 
-### Objects with Inline Comments
+### Objects with Inline Comments - NOT Sorted (Intentional)
 
 ```javascript
-// Before
+// This object will NOT be sorted - inline comments break the "apartment building" pattern
 const config = {
   timeout: 5000, // Maximum timeout in milliseconds
   retries: 3, // Number of retry attempts
@@ -406,31 +407,24 @@ const config = {
   enabled: true, // Feature flag
   apiKey: "secret-key" // API authentication key
 };
-
-// After
-const config = {
-  id: "config-456", // Unique identifier
-  apiKey: "secret-key", // API authentication key
-  enabled: true, // Feature flag
-  retries: 3, // Number of retry attempts
-  timeout: 5000 // Maximum timeout in milliseconds
-};
+// ☝️ Stays exactly as written - we don't sort objects with inline comments
 ```
 
-Comments stay with their properties when sorted!
+**Why?** Inline comments are part of the "apartment structure" we preserve. Moving properties would separate comments from their values, breaking our core principle of only swapping content while keeping structure intact.
 
-**Note:** Standalone comments (not inline) between properties are treated as part of the code structure and won't be moved. This is intentional - they act as documentation separators:
+**Workaround:** If you want sorting, move inline comments to standalone lines above properties:
 
 ```javascript
+// This WILL be sorted
 const config = {
-  id: "123",
-  name: "Test",
-  // This comment stays in place - treated as documented code
-  timeout: 5000
+  timeout: 5000,
+  retries: 3,
+  // Unique identifier
+  id: "config-456",
+  enabled: true,
+  apiKey: "secret-key"
 };
 ```
-
-This behavior helps preserve intentional code documentation and section separators.
 
 ## Why Use This Extension?
 
@@ -457,14 +451,23 @@ MIT
 
 ## Changelog
 
-### 1.3.0
+### 1.3.5
 
-**✨ New Feature: Inline Comment Preservation**
-- ✅ Inline comments now move with their properties when sorting
-- ✅ Example: `timeout: 5000, // Maximum timeout` stays together
-- ✅ Works with all property types (objects, functions, primitives)
-- 🧪 Added comprehensive test for comment preservation
-- 📦 All tests passing: 5/5 ✓
+**🔄 Reverted: Inline Comment Sorting**
+- ❌ Removed inline comment sorting feature (v1.3.0-1.3.1)
+- ✅ Objects with inline comments are now SKIPPED (not sorted)
+- 🏗️ Preserves "apartment building" principle - comments are part of structure
+- 📝 Updated documentation with workaround for inline comments
+- 🧪 Tests updated: 4/4 passing
+
+**Why?** Inline comments (`value, // comment`) are part of the line structure, not the property value. Sorting them would violate our core principle of preserving exact formatting. If you need sorting with documentation, use standalone comments above properties instead.
+
+### 1.3.0 - 1.3.1
+
+**⚠️ REVERTED - Do not use these versions**
+- Attempted to preserve inline comments with properties
+- Broke the apartment building pattern
+- Caused comma placement issues
 
 ### 1.2.0
 
