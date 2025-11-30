@@ -11,10 +11,10 @@ import { apple, banana, monkey, zebra } from "animals";
 // ============================================================================
 import {
   AlphaComponent,
+  BetaComponent,
   DeltaComponent,
   GammaComponent,
-  BetaComponent,
-  ZebraComponent
+  ZebraComponent,
 } from "my-ui-library";
 
 import {
@@ -193,8 +193,8 @@ const componentProps = {
 const handlers = {
   onChange: () => {},
   id: "form-1",
-  onSubmit: () => console.log("submit"),
   name: "myForm",
+  onSubmit: () => console.log("submit"),
 };
 
 // ============================================================================
