@@ -2,8 +2,6 @@
 
 **Automatically sorts objects and flat arrays alphabetically on save, with smart prioritization for `__typename`, `id`, and `_id`.**
 
-![Demo](https://raw.githubusercontent.com/ozJSey/object-key-sort-alphabetical/main/assets/demo.gif)
-
 ## Features
 
 - ✅ **Automatic sorting on save** - Objects, interfaces, types, and arrays are sorted when you save

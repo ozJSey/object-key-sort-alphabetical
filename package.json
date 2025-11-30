@@ -2,12 +2,12 @@
   "name": "object-sort-alphabetical",
   "displayName": "Object Sort Alphabetical",
   "description": "Automatically sort object properties alphabetically on save",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "publisher": "ozJSey",
-  "engines": {
-    "vscode": "^1.85.0"
-  },
   "icon": "assets/icon.png",
+  "engines": {
+    "vscode": "^1.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ozJSey/object-key-sort-alphabetical.git"
