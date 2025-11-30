@@ -5,7 +5,18 @@ const _isSortableContext = (text: string, bracePos: number) => {
     while (i >= 0 && /[\s\n]/.test(text[i])) i--;
     if (i < 0) return false;
     
-    if (text[i] === '=') return true;
+    if (text[i] === ')') return false;
+    
+    if (text[i] === '=') {
+        if (i > 0 && text[i - 1] === '=') return false;
+        if (i < text.length - 1 && text[i + 1] === '>') return false;
+        return true;
+    }
+    
+    if (text[i] === '>') {
+        if (i > 0 && text[i - 1] === '=') return false;
+    }
+    
     if (text[i] === ':') return true;
     if (text[i] === ',') return true;
     if (text[i] === '[') return true;
@@ -17,7 +28,6 @@ const _isSortableContext = (text: string, bracePos: number) => {
     
     if (/\b(const|let|var)\s+$/.test(lookback)) return true;
     
-    if (text[i] === ')') return false;
     if (/\bclass\s+\w+/.test(lookback)) return false;
     
     return false;
