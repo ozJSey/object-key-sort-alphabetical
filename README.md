@@ -273,12 +273,16 @@ MIT
 
 ## Changelog
 
+### 1.0.1
+
+- Added manual test files and .spec. files
+
 ### 1.0.0
 
-- 🎉 First stable release
 - Production ready with extensive testing
 - Complete feature set
 - Comprehensive documentation
+- Release candidate
 
 ### 0.9.4
 
