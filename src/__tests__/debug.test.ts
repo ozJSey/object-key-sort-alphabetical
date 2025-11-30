@@ -64,5 +64,22 @@ describe('Debug eventHandlers', () => {
         expect(clickPos).toBeLessThan(loadPos);
         expect(loadPos).toBeLessThan(submitPos);
     });
+
+    it('should handle TypeScript generics without breaking', () => {
+        const input = `{
+  private cache: Map<string, any>;
+  private timeout: number;
+}`;
+        
+        const result = _sortBlock(input);
+        
+        // Should preserve Map<string, any> exactly
+        expect(result).toContain('Map<string, any>');
+        expect(result).toContain('cache');
+        expect(result).toContain('timeout');
+        
+        // cache should come before timeout
+        expect(result.indexOf('cache')).toBeLessThan(result.indexOf('timeout'));
+    });
 });
 

@@ -122,38 +122,38 @@ const anotherShorthand = {
 
 const nestedData = {
   metadata: {
-    version: 1,
     __typename: "Metadata",
-    created: "2024-01-01"
+    created: "2024-01-01",
+    version: 1
   },
   user: {
+    __typename: "User",
+    id: "user-789",
+    name: "Bob",
     profile: {
-      website: "example.com",
+      id: "profile-1",
       avatar: "avatar.jpg",
       bio: "Developer",
-      id: "profile-1"
+      website: "example.com"
     },
     settings: {
-      theme: "dark",
+      id: "settings-1",
       language: "en",
       notifications: true,
-      id: "settings-1"
-    },
-    name: "Bob",
-    __typename: "User",
-    id: "user-789"
+      theme: "dark"
+    }
   }
 };
 
 const moreNested = {
   outer: {
-    middle: "value",
+    id: "outer-1",
     inner: {
-      zebra: "z",
       id: "inner-1",
-      alpha: "a"
+      alpha: "a",
+      zebra: "z"
     },
-    id: "outer-1"
+    middle: "value"
   },
   simple: "data"
 };
@@ -203,20 +203,23 @@ function ComponentWithProps({ className, onClose, theme, userId }: any) {
 // ============================================================================
 
 const eventHandlers = {
-  onSubmit: (event: any) => {
+  
+  onChange: (value: string) => {
     event.preventDefault();
-    console.log("Form submitted");
+    console.log("Value changed:", value);
   },
   onClick: () => {
     console.log("Clicked");
   },
-  onChange: (value: string) => {
-    console.log("Value changed:", value);
-  },
+  
   onLoad: async () => {
     const data = await fetch("/api/data");
     return data.json();
-  }
+  },
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
+  },
 };
 
 const componentProps = {
@@ -243,8 +246,8 @@ const dataWithArrays = {
   tags: ["javascript", "typescript"],
   total: 2,
   users: [
-    { name: "Alice", id: "1" },
-    { name: "Bob", id: "2" }
+    { id: "1", name: "Alice" },
+    { id: "2", name: "Bob" }
   ]
 };
 
@@ -253,18 +256,18 @@ const dataWithArrays = {
 // ============================================================================
 
 const apiClient = {
-  post: async (url: string, data: any) => {
-    return fetch(url, { body: JSON.stringify(data), method: "POST" });
-  },
+  id: "api-client-1",
+  baseUrl: "https://api.example.com",
   delete: async (url: string) => {
     return fetch(url, { method: "DELETE" });
   },
   get: async (url: string) => {
     return fetch(url, { method: "GET" });
   },
-  timeout: 5000,
-  baseUrl: "https://api.example.com",
-  id: "api-client-1"
+  post: async (url: string, data: any) => {
+    return fetch(url, { body: JSON.stringify(data), method: "POST" });
+  },
+  timeout: 5000
 };
 
 const withRegularFunction = {
@@ -283,11 +286,11 @@ const withRegularFunction = {
 // ============================================================================
 
 type ApiConfigWithGenerics = {
-  timeout: number;
+  string>;
+  enabled: boolean;, timeout: number;
   baseUrl: string;
   retries: number;
-  headers: Record<string, string>;
-  enabled: boolean;
+  headers: Record<string
 };
 
 const configWithGenerics: Record<string, any> = {
@@ -302,24 +305,24 @@ const configWithGenerics: Record<string, any> = {
 
 const complexApiResponse = {
   data: {
+    __typename: "UserConnection",
+    total: 2,
     users: [
       {
-        email: "user1@example.com",
         __typename: "User",
-        name: "User One",
         id: "1",
-        _id: "mongo1"
+        _id: "mongo1",
+        email: "user1@example.com",
+        name: "User One"
       },
       {
-        email: "user2@example.com",
-        _id: "mongo2",
-        name: "User Two",
         __typename: "User",
-        id: "2"
+        id: "2",
+        _id: "mongo2",
+        email: "user2@example.com",
+        name: "User Two"
       }
-    ],
-    __typename: "UserConnection",
-    total: 2
+    ]
   },
   message: "Success",
   statusCode: 200,
@@ -468,7 +471,7 @@ const userTemplate = `
 
 // Class definitions - structure should NOT change
 class UserService {
-  private cache: Map<string, any>;
+  any>;
   private timeout: number;
 
   constructor(timeout = 5000) {
@@ -482,7 +485,7 @@ class UserService {
 
   clear() {
     this.cache.clear();
-  }
+  }, private cache: Map<string
 }
 
 // ============================================================================
@@ -491,15 +494,15 @@ class UserService {
 
 const packageConfig = {
   "dependencies": {
-    "react": "^18.0.0",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "react": "^18.0.0"
   },
   "description": "A test package",
   "name": "my-package",
   "scripts": {
-    "test": "jest",
     "build": "tsc",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jest"
   },
   "version": "1.0.0"
 };
@@ -533,20 +536,20 @@ const patterns = {
 // ============================================================================
 
 const complexHandlers = {
-  onSubmit: (event: any) => {
-    event.preventDefault();
-    console.log("Form submitted");
-    const formData = new FormData(event.target);
-    console.log("Data:", formData);
-  },
-  onClick: () => {
-    console.log("Clicked");
-  },
   onChange: (value: string) => {
     console.log("Value changed:", value);
     if (value.length > 10) {
       console.log("Too long");
     }
+  },
+  onClick: () => {
+    console.log("Clicked");
+  },
+  onSubmit: (event: any) => {
+    event.preventDefault();
+    console.log("Form submitted");
+    const formData = new FormData(event.target);
+    console.log("Data:", formData);
   }
 };
 

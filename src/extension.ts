@@ -1,3 +1,4 @@
+"use strict";
 import * as vscode from 'vscode';
 
 // Structural detection - no keyword checking
@@ -123,8 +124,9 @@ const _findPropertyRanges = (content: string) => {
         } else if (inString && c === stringChar && prev !== '\\') {
             inString = false;
         } else if (!inString) {
-            if (c === '{' || c === '[' || c === '(') depth++;
+            if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
             if (c === '}' || c === ']' || c === ')') depth--;
+            if (c === '>' && prev !== '=') depth--;
             
             if (c === ',' && depth === 0) {
                 ranges.push({ start: propStart, end: i });
