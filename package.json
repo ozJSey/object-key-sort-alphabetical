@@ -2,7 +2,7 @@
   "name": "object-sort-alphabetical",
   "displayName": "Object Sort Alphabetical",
   "description": "Automatically sort object properties alphabetically on save",
-  "version": "0.9.4",
+  "version": "1.0.0",
   "publisher": "ozJSey",
   "icon": "assets/icon.png",
   "engines": {

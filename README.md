@@ -273,6 +273,31 @@ MIT
 
 ## Changelog
 
+### 1.0.0
+
+- 🎉 First stable release
+- Production ready with extensive testing
+- Complete feature set
+- Comprehensive documentation
+
+### 0.9.4
+
+- Final polish and bug fixes
+- README improvements with local asset paths
+- Enhanced marketplace presentation
+
+### 0.9.3
+
+- Icon and asset optimization
+- VSCode version compatibility improvements
+- Package size optimization
+
+### 0.9.2
+
+- Documentation refinements
+- Contact and feedback links
+- Changelog updates
+
 ### 0.9.1
 
 - Production-ready stability

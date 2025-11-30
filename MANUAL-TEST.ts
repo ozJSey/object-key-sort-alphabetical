@@ -4,67 +4,67 @@
 // ============================================================================
 // TEST 1: Single-line Import (should sort alphabetically)
 // ============================================================================
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { zebra, apple, monkey, banana } from "animals";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { apple, banana, monkey, zebra } from "animals";
 // ============================================================================
 // TEST 2: Multi-line Import (should sort alphabetically)
 // ============================================================================
 import {
-  ZebraComponent,
   AlphaComponent,
   BetaComponent,
+  DeltaComponent,
   GammaComponent,
-  DeltaComponent
+  ZebraComponent
 } from "my-ui-library";
 
 import {
-  Zebra,
   Alpha,
+  Beta,
   Monkey,
-  Beta
+  Zebra
 } from "test-library";
 
 // ============================================================================
 // TEST 3: Another Multi-line Import with Mixed Order
 // ============================================================================
 import {
-  map,
+  every,
   filter,
-  reduce,
-  forEach,
   find,
-  some,
-  every
+  forEach,
+  map,
+  reduce,
+  some
 } from "lodash";
 
 import {
-  zulu,
   alpha,
+  bravo,
   charlie,
-  bravo
+  zulu
 } from "phonetic"
 
 // ============================================================================
 // TEST 4: Priority Sorting - __typename, id, _id
 // ============================================================================
 const graphqlUser = {
-  name: "John Doe",
-  age: 30,
-  email: "john@example.com",
-  _id: "507f1f77bcf86cd799439011",
-  city: "New York",
-  id: "user-123",
   __typename: "User",
-  isActive: true
+  id: "user-123",
+  _id: "507f1f77bcf86cd799439011",
+  age: 30,
+  city: "New York",
+  email: "john@example.com",
+  isActive: true,
+  name: "John Doe"
 };
 
 const anotherUser = {
-  zipCode: "12345",
-  name: "Jane",
+  __typename: "User",
+  id: "user-456",
   _id: "mongo-456",
   age: 25,
-  id: "user-456",
-  __typename: "User"
+  name: "Jane",
+  zipCode: "12345"
 };
 
 // ============================================================================
@@ -78,12 +78,12 @@ const lastName = "Smith";
 const age = 28;
 
 const shorthandObject = {
-  lastName,
-  age,
-  id,
-  firstName,
   __typename,
-  _id
+  id,
+  _id,
+  age,
+  firstName,
+  lastName
 };
 
 const zebra = "z";
@@ -91,55 +91,56 @@ const apple = "a";
 const monkey = "m";
 
 const anotherShorthand = {
-  zebra,
+  __typename,
+  id,
   apple,
   monkey,
-  id,
-  __typename
+  zebra
 };
 
 // ============================================================================
 // TEST 6: TypeScript Interface (with semicolons)
 // ============================================================================
 interface User {
-  name: string;
-  age: number;
-  email: string;
-  _id: string;
-  id: string;
-  __typename: string;
-}
+  __typename: string,
+  id: string,
+  _id: string,
+  age: number,
+  email: string,
+  name: string}
 
 interface Product {
-  price: number;
-  name: string;
-  category: string;
-  id: string;
-  __typename: string;
-}
+  __typename: string,
+  id: string,
+  category: string,
+  name: string,
+  price: number}
 
 // ============================================================================
 // TEST 7: TypeScript Type (with semicolons)
 // ============================================================================
 type Product = {
-  price: number;
-  name: string;
-  id: string;
-  __typename: string;
-  category: string;
-};
+  __typename: string,
+  id: string,
+  category: string,
+  name: string,
+  price: number};
 
 type Animal = {
-  species: string;
-  name: string;
-  age: number;
-  id: string;
-};
+  id: string,
+  age: number,
+  name: string,
+  species: string};
 
 // ============================================================================
 // TEST 8: Nested Objects
 // ============================================================================
 const nestedData = {
+  metadata: {
+    version: 1,
+    created: "2024-01-01",
+    __typename: "Metadata"
+  },
   user: {
     profile: {
       website: "example.com",
@@ -156,23 +157,18 @@ const nestedData = {
     name: "Bob",
     id: "user-789",
     __typename: "User"
-  },
-  metadata: {
-    version: 1,
-    created: "2024-01-01",
-    __typename: "Metadata"
   }
 };
 
 const moreNested = {
   outer: {
+    id: "outer-1",
     inner: {
       zebra: "z",
       alpha: "a",
       id: "inner-1"
     },
-    middle: "value",
-    id: "outer-1"
+    middle: "value"
   },
   simple: "data"
 };
@@ -181,81 +177,80 @@ const moreNested = {
 // TEST 9: Object with Arrow Functions
 // ============================================================================
 const componentProps = {
+  id: "complex-btn",
+  "aria-label": "Complex button",
+  children: ["Click", " ", "Me"],
+  className: "btn btn-primary",
+  "data-testid": "test-button",
+  disabled: false,
   onClick: (event) => {
     event.preventDefault();
     return { handled: true };
   },
-  className: "btn btn-primary",
-  disabled: false,
-  id: "complex-btn",
-  children: ["Click", " ", "Me"],
-  "aria-label": "Complex button",
-  "data-testid": "test-button",
   type: "submit"
 };
 
 const handlers = {
-  onSubmit: () => console.log("submit"),
+  id: "form-1",
   name: "myForm",
   onChange: () => {},
-  id: "form-1"
+  onSubmit: () => console.log("submit")
 };
 
 // ============================================================================
 // TEST 10: Single Line Object
 // ============================================================================
-const singleLine = { zebra: 1, alpha: 2, id: 3, beta: 4, __typename: "Single" };
-const anotherSingle = { z: 1, a: 2, m: 3, b: 4, id: 5 };
+const singleLine = { __typename: "Single", id: 3, alpha: 2, beta: 4, zebra: 1 };
+const anotherSingle = { id: 5, a: 2, b: 4, m: 3, z: 1 };
 
 // ============================================================================
 // TEST 11: Object with String Keys
 // ============================================================================
 const config = {
-  timeout: 5000,
-  "api-key": "secret-key-123",
-  enabled: true,
-  id: "config-1",
-  "max-retries": 3,
   __typename: "Config",
+  id: "config-1",
+  _id: "config-mongo-id",
+  "api-key": "secret-key-123",
   "base-url": "https://api.example.com",
-  _id: "config-mongo-id"
+  enabled: true,
+  "max-retries": 3,
+  timeout: 5000
 };
 
 const settings = {
-  "z-index": 100,
+  id: "settings-1",
   "a-value": "test",
   "m-option": true,
-  id: "settings-1"
+  "z-index": 100
 };
 
 // ============================================================================
 // TEST 12: Object with Arrays
 // ============================================================================
 const dataWithArrays = {
+  __typename: "UserList",
+  id: "list-1",
+  tags: ["javascript", "typescript"],
+  total: 2,
   users: [
     { name: "Alice", id: "1" },
     { name: "Bob", id: "2" }
-  ],
-  total: 2,
-  id: "list-1",
-  tags: ["javascript", "typescript"],
-  __typename: "UserList"
+  ]
 };
 
 const listData = {
+  id: "list-2",
+  count: 2,
   items: [
     { title: "First", id: "1" },
     { title: "Second", id: "2" }
-  ],
-  count: 2,
-  id: "list-2"
+  ]
 };
 
 // ============================================================================
 // TEST 13: Complex Real-World API Response
 // ============================================================================
 const apiResponse = {
-  statusCode: 200,
   data: {
     users: [
       {
@@ -277,11 +272,12 @@ const apiResponse = {
     __typename: "UserConnection"
   },
   message: "Success",
+  statusCode: 200,
   timestamp: Date.now()
 };
 
 const anotherResponse = {
-  status: 201,
+  error: null,
   result: {
     products: [
       {
@@ -294,7 +290,7 @@ const anotherResponse = {
     count: 1,
     __typename: "ProductList"
   },
-  error: null
+  status: 201
 };
 
 // ============================================================================
@@ -318,52 +314,33 @@ const alreadySorted = {
 };
 
 const needsSorting = {
-  zulu: 1,
   alpha: 2,
+  bravo: 4,
   mike: 3,
-  bravo: 4
+  zulu: 1
 };
 
 // ============================================================================
-// TEST 16: Ignore Comments
+// TEST 16: Flat Arrays with Primitives (should sort)
 // ============================================================================
-// auto-sort-ignore-next-line
-const ignoreThis = {
-  zebra: 1,
-  apple: 2,
-  monkey: 3
-};
-
-const sortThis = {
-  zebra: 1,
-  apple: 2,
-  monkey: 3
-};
-
-// auto-sort-ignore
-const alsoIgnore = { z: 1, a: 2, m: 3 };
-
-// ============================================================================
-// TEST 17: Flat Arrays with Primitives (should sort)
-// ============================================================================
-const stringArray = ["zebra", "apple", "monkey", "banana"];
-const simpleTest = ["z", "a", "m"];
-const numberArray = [100, 5, 50, 10, 1];
-const variableArray = [zebra, apple, monkey, id, __typename];
+const stringArray = ["apple", "banana", "monkey", "zebra"];
+const simpleTest = ["a", "m", "z"];
+const numberArray = [1, 10, 100, 5, 50];
+const variableArray = [__typename, apple, id, monkey, zebra];
 const mixedStrings = [
-  "zebra",
-  "apple", 
+  "apple",
+  "banana", 
   "monkey",
-  "banana"
+  "zebra"
 ];
 
 // ============================================================================
 // TEST 17: Arrays with Objects (should NOT sort array, but sort objects inside)
 // ============================================================================
 const arrayWithObjects = [
-  { name: "Zebra", id: "3" },
-  { name: "Apple", id: "1" },
-  { name: "Banana", id: "2" }
+  { id: "3", name: "Zebra" },
+  { id: "1", name: "Apple" },
+  { id: "2", name: "Banana" }
 ];
 
 // ============================================================================
@@ -383,15 +360,15 @@ const arrayWithObjects = [
 // ============================================================================
 
 export {
-  graphqlUser,
-  shorthandObject,
-  nestedData,
+  alreadySorted,
+  apiResponse,
   componentProps,
-  singleLine,
   config,
   dataWithArrays,
-  apiResponse,
   empty,
+  graphqlUser,
+  nestedData,
+  shorthandObject,
   single,
-  alreadySorted
+  singleLine
 };
