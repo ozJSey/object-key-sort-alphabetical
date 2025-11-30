@@ -1,19 +1,38 @@
 # Object Sort Alphabetical
 
-**Automatically sorts objects alphabetically on save, with smart prioritization for `__typename`, `id`, and `_id`.**
+**The most intelligent object sorting extension for VS Code. Automatically sorts objects, interfaces, types, imports, and destructuring patterns alphabetically on save - with perfect formatting preservation and smart prioritization for GraphQL.**
 
 ![Demo](assets/demo.gif)
 
-## Features
+> 🏆 **What makes this special?** Unlike other formatters, we use the "apartment building" approach - we identify the structure (commas, newlines, spaces) and only swap the content, preserving your exact formatting. No opinionated formatting, no conflicts with your linter.
 
-- ✅ **Automatic sorting on save** - Objects, interfaces, types, and imports are sorted when you save
-- ✅ **Priority sorting** - `__typename`, `id`, and `_id` always come first (perfect for GraphQL)
-- ✅ **Nested objects** - Recursively sorts all nested objects
-- ✅ **TypeScript support** - Handles interfaces with semicolons and types
-- ✅ **Import sorting** - Named imports are sorted alphabetically
-- ✅ **Preserves formatting** - Keeps your exact spacing, newlines, commas, and semicolons
-- ✅ **Smart context detection** - Only sorts object literals, never arrays, destructuring, or function params
-- ✅ **Ignore comments** - Skip sorting with `// auto-sort-ignore` or `// auto-sort-ignore-next-line`
+## ✨ Features
+
+### 🎯 Smart Sorting
+- **Priority sorting** - `__typename`, `id`, and `_id` always come first (perfect for GraphQL)
+- **Nested objects** - Recursively sorts all nested objects, no matter how deep
+- **Context-aware** - Knows the difference between object literals, destructuring, and function params
+
+### 🔧 What Gets Sorted
+- ✅ Object literals (`const obj = { ... }`)
+- ✅ TypeScript interfaces and types (with semicolons!)
+- ✅ Named imports (`import { ... }`)
+- ✅ Object destructuring (`const { a, b } = obj`)
+- ✅ Objects inside arrays (array order preserved!)
+- ✅ Shorthand properties
+- ✅ String keys with special characters
+
+### 🎨 Perfect Formatting Preservation
+- **Zero formatting changes** - Your spaces, newlines, commas, and semicolons stay exactly as you wrote them
+- **No linter conflicts** - We don't reformat, we just reorder
+- **Handles complex types** - `Record<string, string>`, `Array<Type>`, generics, arrow functions, multiline values
+
+### 🛡️ Smart Protection
+- **Arrays never sorted** - Order matters for execution and data structure
+- **Array destructuring preserved** - `const [a, b] = arr` stays positional
+- **Function params preserved** - Positional arguments stay in order
+- **Class bodies untouched** - Structure and syntax preserved
+- **Ignore comments** - Skip sorting with `// auto-sort-ignore` or `// auto-sort-ignore-next-line`
 
 ## Installation
 
@@ -91,6 +110,46 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 ```typescript
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 ```
+
+### Object Destructuring
+
+**Before:**
+```javascript
+const { zebra, alpha, monkey } = { alpha: 2, monkey: 3, zebra: 1 };
+```
+
+**After:**
+```javascript
+const { alpha, monkey, zebra } = { alpha: 2, monkey: 3, zebra: 1 };
+```
+
+Both sides are sorted! Perfect for maintaining consistency.
+
+### Complex TypeScript Types
+
+**Before:**
+```typescript
+type ApiConfig = {
+  timeout: number;
+  retries: number;
+  baseUrl: string;
+  headers: Record<string, string>;
+  enabled: boolean;
+};
+```
+
+**After:**
+```typescript
+type ApiConfig = {
+  baseUrl: string;
+  enabled: boolean;
+  headers: Record<string, string>;
+  retries: number;
+  timeout: number;
+};
+```
+
+Handles generics, nested types, and complex type annotations perfectly!
 
 ### Nested Objects
 
@@ -176,23 +235,38 @@ Configure the extension in your VS Code settings:
 - TypeScript (`.ts`, `.tsx`)
 - JSON (`.json`, `.jsonc`)
 
-## What Gets Sorted
+## 🎯 How It Works
+
+We use the **"apartment building" approach**:
+
+1. **Identify the structure** - Find all the commas, newlines, spaces (the "apartment")
+2. **Extract the content** - Get just the property names and values (the "people")
+3. **Sort the content** - Reorder by key name with priority rules
+4. **Swap in place** - Put sorted content back, keeping structure intact
+
+This means:
+- ✅ Your formatting stays **exactly** as you wrote it
+- ✅ No conflicts with Prettier, ESLint, or other formatters
+- ✅ Works with any coding style (spaces, tabs, newlines, semicolons)
+- ✅ Handles multiline values, arrow functions, complex types
+
+## 📋 What Gets Sorted vs. Protected
 
 ### ✅ Sorted
 
 - Object literals (`const obj = { ... }`)
-- TypeScript interfaces
-- TypeScript types
+- TypeScript interfaces and types
 - Named imports (`import { ... }`)
+- Object destructuring (`const { a, b } = obj`)
 - Nested objects (recursively)
 - Objects inside arrays
 - Shorthand properties
 - String keys (`"api-key"`)
 
-### ❌ Never Sorted (Order Matters!)
+### 🛡️ Never Sorted (Order Matters!)
 
 - **Arrays** - Element order is preserved (execution order, data structure)
-- **Destructuring** - Positional meaning preserved (`const [a, b] = arr`)
+- **Array destructuring** - Positional meaning preserved (`const [a, b] = arr`)
 - **Function parameters** - Positional arguments preserved
 - **Class bodies** - Structure and syntax preserved
 - **Switch cases** - Execution order preserved
@@ -276,17 +350,21 @@ MIT
 
 ## Changelog
 
-### 1.3.0
+### 1.3.0 - The "Apartment Building" Release 🏢
 
 - 🎯 **BREAKING**: Removed array sorting - arrays are never sorted as order matters for execution and data structure
-- ✨ Complete rewrite of sorting logic using pure string operations (the "apartment building" approach)
+- ✨ **NEW**: Object destructuring patterns are now sorted (e.g., `const { z, a } = obj` → `const { a, z } = obj`)
+- ✨ **NEW**: TypeScript generic types fully supported (`Record<string, string>`, `Array<Type>`, etc.)
+- ✨ Complete rewrite using the "apartment building" approach - pure string position swapping
 - ✨ Perfect formatting preservation - all whitespace, newlines, commas, and semicolons stay exactly as written
-- ✨ Smart context detection - only sorts object literals, interfaces, types, and imports
-- 🐛 Fixed: Destructuring is never sorted (positional meaning preserved)
+- ✨ Smart context detection - only sorts object literals, interfaces, types, imports, and destructuring
+- ✨ Depth tracking for `{}`, `[]`, `()`, and `<>` - handles nested structures perfectly
+- 🐛 Fixed: Array destructuring is never sorted (positional meaning preserved)
 - 🐛 Fixed: Function parameters are never sorted (positional arguments preserved)
 - 🐛 Fixed: Class bodies are never sorted (structure and syntax preserved)
 - 🐛 Fixed: Arrays preserve execution order and data structure
-- 📝 Updated documentation to clarify what gets sorted and what doesn't
+- 🐛 Fixed: Complex type annotations with commas inside generics
+- 📝 Comprehensive documentation with examples and technical details
 
 ### 1.2.0
 

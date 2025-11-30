@@ -15,6 +15,8 @@ const _isSortableContext = (text: string, bracePos: number) => {
     if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
     if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
     
+    if (/\b(const|let|var)\s+$/.test(lookback)) return true;
+    
     if (text[i] === ')') return false;
     if (/\bclass\s+\w+/.test(lookback)) return false;
     
@@ -86,8 +88,8 @@ const _findPropertyRanges = (content: string) => {
         } else if (inString && c === stringChar && prev !== '\\') {
             inString = false;
         } else if (!inString) {
-            if (c === '{' || c === '[' || c === '(') depth++;
-            if (c === '}' || c === ']' || c === ')') depth--;
+            if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
+            if (c === '}' || c === ']' || c === ')' || c === '>') depth--;
             
             if ((c === ',' || c === ';') && depth === 0) {
                 ranges.push({ start: propStart, end: i });
