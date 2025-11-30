@@ -169,12 +169,11 @@ const _sortBlock = (fullBlock: string) => {
 
 const _findIgnoreComments = (text: string) => {
     const positions: number[] = [];
-    let pos = 0;
     let i = 0;
     
     while (i < text.length) {
-        if (text.substring(i, i + 24) === 'auto-sort-ignore-next-line' || 
-            text.substring(i, i + 16) === 'auto-sort-ignore') {
+        if (text.substring(i, i + 27) === '// auto-sort-ignore-next-line' || 
+            text.substring(i, i + 19) === '// auto-sort-ignore') {
             let lineEnd = text.indexOf('\n', i);
             if (lineEnd === -1) lineEnd = text.length;
             positions.push(lineEnd + 1);
