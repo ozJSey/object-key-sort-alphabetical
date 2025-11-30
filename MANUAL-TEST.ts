@@ -137,11 +137,14 @@ type Animal = {
 // ============================================================================
 const nestedData = {
   metadata: {
-    version: 1,
+    __typename: "Metadata",
     created: "2024-01-01",
-    __typename: "Metadata"
+    version: 1
   },
   user: {
+    __typename: "User",
+    id: "user-789",
+    name: "Bob",
     profile: {
       website: "example.com",
       bio: "Developer",
@@ -153,10 +156,7 @@ const nestedData = {
       notifications: true,
       language: "en",
       id: "settings-1"
-    },
-    name: "Bob",
-    id: "user-789",
-    __typename: "User"
+    }
   }
 };
 
@@ -164,9 +164,9 @@ const moreNested = {
   outer: {
     id: "outer-1",
     inner: {
-      zebra: "z",
+      id: "inner-1",
       alpha: "a",
-      id: "inner-1"
+      zebra: "z"
     },
     middle: "value"
   },
@@ -233,8 +233,8 @@ const dataWithArrays = {
   tags: ["javascript", "typescript"],
   total: 2,
   users: [
-    { name: "Alice", id: "1" },
-    { name: "Bob", id: "2" }
+    { id: "1", name: "Alice" },
+    { id: "2", name: "Bob" }
   ]
 };
 
@@ -242,8 +242,8 @@ const listData = {
   id: "list-2",
   count: 2,
   items: [
-    { title: "First", id: "1" },
-    { title: "Second", id: "2" }
+    { id: "1", title: "First" },
+    { id: "2", title: "Second" }
   ]
 };
 
@@ -252,6 +252,8 @@ const listData = {
 // ============================================================================
 const apiResponse = {
   data: {
+    __typename: "UserConnection",
+    total: 2,
     users: [
       {
         email: "user1@example.com",
@@ -267,9 +269,7 @@ const apiResponse = {
         id: "2",
         __typename: "User"
       }
-    ],
-    total: 2,
-    __typename: "UserConnection"
+    ]
   },
   message: "Success",
   statusCode: 200,
@@ -279,6 +279,8 @@ const apiResponse = {
 const anotherResponse = {
   error: null,
   result: {
+    __typename: "ProductList",
+    count: 1,
     products: [
       {
         price: 99,
@@ -286,9 +288,7 @@ const anotherResponse = {
         id: "prod-1",
         __typename: "Product"
       }
-    ],
-    count: 1,
-    __typename: "ProductList"
+    ]
   },
   status: 201
 };
