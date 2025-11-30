@@ -1,4 +1,4 @@
-import { _isObjectLiteral, _sortBlock } from '../extension';
+import { _isObjectLiteral, _sortBlock, _findBlocksAndSort } from '../extension';
 
 describe('Debug eventHandlers', () => {
     it('should detect and sort eventHandlers', () => {
@@ -19,12 +19,7 @@ describe('Debug eventHandlers', () => {
   }
 `;
         
-        console.log('=== TESTING OBJECT DETECTION ===');
-        console.log('Content:', content.substring(0, 100));
-        
         const result = _isObjectLiteral(content);
-        console.log('Result:', result);
-        
         expect(result).toBe(true);
     });
 
@@ -46,19 +41,13 @@ describe('Debug eventHandlers', () => {
   }
 }`;
         
-        console.log('=== TESTING BLOCK SORTING ===');
         const result = _sortBlock(input);
-        console.log('Input has onSubmit at:', input.indexOf('onSubmit'));
-        console.log('Result has onSubmit at:', result.indexOf('onSubmit'));
-        console.log('Result has onChange at:', result.indexOf('onChange'));
         
         // Should be sorted: onChange, onClick, onLoad, onSubmit
         const changePos = result.indexOf('onChange');
         const clickPos = result.indexOf('onClick');
         const loadPos = result.indexOf('onLoad');
         const submitPos = result.indexOf('onSubmit');
-        
-        console.log('Positions - onChange:', changePos, 'onClick:', clickPos, 'onLoad:', loadPos, 'onSubmit:', submitPos);
         
         expect(changePos).toBeLessThan(clickPos);
         expect(clickPos).toBeLessThan(loadPos);
@@ -80,6 +69,49 @@ describe('Debug eventHandlers', () => {
         
         // cache should come before timeout
         expect(result.indexOf('cache')).toBeLessThan(result.indexOf('timeout'));
+    });
+
+    it('should recursively sort nested objects inside arrays', () => {
+        const code = `const data = {
+  users: [
+    {
+      name: "User One",
+      email: "user1@example.com",
+      _id: "mongo1",
+      id: "1",
+      __typename: "User"
+    }
+  ]
+};`;
+        
+        // Mock document
+        const mockDoc = {
+            positionAt: (offset: number) => ({ line: 0, character: offset }),
+            getText: () => code
+        } as any;
+        
+        const edits = _findBlocksAndSort(code, mockDoc);
+        
+        // Should have 1 edit (outer block with recursive sorting applied)
+        expect(edits.length).toBe(1);
+        
+        // The edit should contain the sorted nested object
+        const editText = edits[0].newText;
+        
+        // Should contain all the properties
+        expect(editText).toContain('__typename');
+        expect(editText).toContain('id:');
+        expect(editText).toContain('_id');
+        expect(editText).toContain('email');
+        expect(editText).toContain('name');
+        
+        // Priority order: __typename appears before id, id before _id
+        const typenameIndex = editText.indexOf('__typename');
+        const idIndex = editText.indexOf('id: "1"');
+        const underscoreIdIndex = editText.indexOf('_id:');
+        
+        expect(typenameIndex).toBeLessThan(idIndex);
+        expect(idIndex).toBeLessThan(underscoreIdIndex);
     });
 });
 

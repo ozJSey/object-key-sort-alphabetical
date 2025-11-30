@@ -25,7 +25,8 @@ export const _isObjectLiteral = (content: string) => {
             inString = false;
         } else if (!inString) {
             if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
-            if (c === '}' || c === ']' || c === ')' || c === '>') depth--;
+            if (c === '}' || c === ']' || c === ')') depth--;
+            if (c === '>' && prev !== '=') depth--;
             
             if (depth === 0) {
                 if (c === ':') colonCount++;
@@ -151,6 +152,41 @@ const _findPropertyRanges = (content: string) => {
     return ranges;
 };
 
+const _sortNestedObjects = (text: string): string => {
+    let result = text;
+    let i = 0;
+    
+    while (i < result.length) {
+        if (result[i] === '{') {
+            const end = _findClosing(result, i);
+            if (end === -1) {
+                i++;
+                continue;
+            }
+            
+            const fullBlock = result.substring(i, end + 1);
+            const content = fullBlock.substring(1, fullBlock.length - 1);
+            
+            if (_isObjectLiteral(content)) {
+                const sortedNested = _sortNestedObjects(content);
+                const sortedBlock = _sortBlock('{' + sortedNested + '}');
+                
+                if (sortedBlock !== fullBlock) {
+                    result = result.substring(0, i) + sortedBlock + result.substring(end + 1);
+                    i = i + sortedBlock.length;
+                    continue;
+                }
+            }
+            
+            i = end + 1;
+        } else {
+            i++;
+        }
+    }
+    
+    return result;
+};
+
 export const _sortBlock = (fullBlock: string) => {
     const content = fullBlock.substring(1, fullBlock.length - 1);
     const ranges = _findPropertyRanges(content);
@@ -254,11 +290,6 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
             if (_shouldIgnore(text, i, ignorePositions)) continue;
             
             const isSortable = _isSortableContext(text, i);
-            const preview = text.substring(Math.max(0, i - 30), i + 10).replace(/\n/g, '\\n');
-            if (preview.includes('componentProps') || preview.includes('eventHandlers')) {
-                console.log(`[DEBUG] ${preview} → sortable: ${isSortable}`);
-            }
-            
             if (!isSortable) continue;
             
             const depth = _getDepth(text, i);
@@ -266,17 +297,24 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
         }
     }
     
-    blocks.sort((a, b) => b.depth - a.depth);
+    blocks.sort((a, b) => a.depth - b.depth);
+    
+    const processedRanges: Array<{ start: number; end: number }> = [];
     
     blocks.forEach(({ start, end }) => {
-        const original = text.substring(start, end + 1);
-        const sorted = _sortBlock(original);
+        const isNested = processedRanges.some(r => start > r.start && end < r.end);
+        if (isNested) return;
         
-        if (sorted !== original) {
+        const original = text.substring(start, end + 1);
+        const sorted = _sortNestedObjects(original.substring(1, original.length - 1));
+        const sortedBlock = _sortBlock('{' + sorted + '}');
+        
+        if (sortedBlock !== original) {
             edits.push(vscode.TextEdit.replace(
                 new vscode.Range(document.positionAt(start), document.positionAt(end + 1)),
-                sorted
+                sortedBlock
             ));
+            processedRanges.push({ start, end });
         }
     });
     
