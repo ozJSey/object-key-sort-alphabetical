@@ -419,6 +419,19 @@ const config = {
 
 Comments stay with their properties when sorted!
 
+**Note:** Standalone comments (not inline) between properties are treated as part of the code structure and won't be moved. This is intentional - they act as documentation separators:
+
+```javascript
+const config = {
+  id: "123",
+  name: "Test",
+  // This comment stays in place - treated as documented code
+  timeout: 5000
+};
+```
+
+This behavior helps preserve intentional code documentation and section separators.
+
 ## Why Use This Extension?
 
 - **Consistency** - All team members have objects sorted the same way
