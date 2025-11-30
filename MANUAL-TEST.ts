@@ -11,9 +11,9 @@ import { apple, banana, monkey, zebra } from "animals";
 // ============================================================================
 import {
   AlphaComponent,
-  BetaComponent,
   DeltaComponent,
   GammaComponent,
+  BetaComponent,
   ZebraComponent
 } from "my-ui-library";
 
