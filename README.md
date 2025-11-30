@@ -125,6 +125,71 @@ const { alpha, monkey, zebra } = { alpha: 2, monkey: 3, zebra: 1 };
 
 Both sides are sorted! Perfect for maintaining consistency.
 
+### Objects with Functions (ANY function body length)
+
+**Before:**
+```javascript
+const eventHandlers = {
+  onSubmit: (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData);
+    validateData(data);
+    submitToApi(data);
+    console.log("Form submitted");
+  },
+  onChange: function(value, index, array) {
+    console.log("Value changed:", value);
+    updateState(value);
+    triggerValidation();
+  },
+  onClick: async (id) => {
+    const data = await fetchData(id);
+    processData(data);
+    return data;
+  },
+  onLoad() {
+    initialize();
+    loadSettings();
+  }
+};
+```
+
+**After:**
+```javascript
+const eventHandlers = {
+  onChange: function(value, index, array) {
+    console.log("Value changed:", value);
+    updateState(value);
+    triggerValidation();
+  },
+  onClick: async (id) => {
+    const data = await fetchData(id);
+    processData(data);
+    return data;
+  },
+  onLoad() {
+    initialize();
+    loadSettings();
+  },
+  onSubmit: (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData);
+    validateData(data);
+    submitToApi(data);
+    console.log("Form submitted");
+  }
+};
+```
+
+Function bodies are **never touched** - only the keys are sorted! Works with:
+- Arrow functions: `(params) => { ... }`
+- Regular functions: `function(params) { ... }`
+- Method shorthand: `methodName() { ... }`
+- Async functions: `async (params) => { ... }`
+- Any number of statements inside!
+
 ### Complex TypeScript Types
 
 **Before:**
@@ -349,6 +414,31 @@ Contributions are welcome! Please follow these steps:
 MIT
 
 ## Changelog
+
+### 1.4.0 - The Function Fix Release 🎯
+
+- 🐛 **CRITICAL FIX**: Function bodies with semicolons no longer break sorting
+- ✨ Removed semicolon from property separator detection (only use commas)
+- ✨ Works with ANY function body length (1 line or 1000 lines)
+- ✨ Supports all function types: arrow functions, regular functions, method shorthand, async
+- 📝 Added comprehensive function examples to README
+- 🧪 Verified: Functions with multiple parameters and complex bodies work perfectly
+
+### 1.3.6
+
+- Fix: Function bodies no longer split on semicolons
+
+### 1.3.5
+
+- Fix: Ignore comments now work correctly (was missing // prefix)
+
+### 1.3.4
+
+- Fix: JSON files now sort correctly (package.json, tsconfig.json, etc.)
+
+### 1.3.3
+
+- Fix: Arrow function and regular function bodies protected from sorting
 
 ### 1.3.0 - The "Apartment Building" Release 🏢
 
