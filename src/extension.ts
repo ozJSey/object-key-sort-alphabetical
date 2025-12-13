@@ -1,13 +1,12 @@
 "use strict";
 import * as vscode from 'vscode';
 
-// Structural detection - no keyword checking
-// An object literal: { key: value, key2: value2 } or { shorthand, other }
+// Improved structural detection that handles functions better
 export const _isObjectLiteral = (content: string) => {
     const trimmed = content.trim();
     if (trimmed.length === 0) return false;
     
-    // Skip objects with inline comments - they break the apartment building pattern
+    // Skip objects with inline comments
     if (/,\s*\/\//.test(trimmed)) return false;
     
     let depth = 0;
@@ -15,7 +14,7 @@ export const _isObjectLiteral = (content: string) => {
     let stringChar = '';
     let colonCount = 0;
     let commaCount = 0;
-    let semicolonCount = 0;
+    let hasFunctions = false;
     
     for (let i = 0; i < trimmed.length; i++) {
         const c = trimmed[i];
@@ -27,21 +26,40 @@ export const _isObjectLiteral = (content: string) => {
         } else if (inString && c === stringChar && prev !== '\\') {
             inString = false;
         } else if (!inString) {
-            if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
+            if (c === '{' || c === '[' || c === '(') depth++;
             if (c === '}' || c === ']' || c === ')') depth--;
-            if (c === '>' && prev !== '=') depth--;
             
             if (depth === 0) {
                 if (c === ':') colonCount++;
                 if (c === ',') commaCount++;
-                if (c === ';') semicolonCount++;
+            }
+            
+            // Detect function patterns at depth 0 (object level)
+            if (depth === 0) {
+                // Arrow function detection
+                if (c === '(' && i + 1 < trimmed.length) {
+                    const nextChars = trimmed.substring(i + 1, Math.min(i + 10, trimmed.length));
+                    if (nextChars.includes(')') && trimmed.substring(i + 1).includes('=>')) {
+                        hasFunctions = true;
+                    }
+                }
+                // Regular function/method detection
+                if ((c === 'f' && trimmed.substring(i, i + 8) === 'function') ||
+                    (c === 'a' && trimmed.substring(i, i + 5) === 'async') ||
+                    (c === '(' && prev === ')')) { // method shorthand
+                    hasFunctions = true;
+                }
             }
         }
     }
     
-    const isObject = (colonCount > 0 && (colonCount >= commaCount || colonCount >= semicolonCount)) || 
-                     (commaCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*,/.test(trimmed)) ||
-                     (semicolonCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*:/.test(trimmed));
+    // For objects with functions, be more lenient - they're still sortable
+    if (hasFunctions) {
+        return commaCount > 0 || colonCount > 0;
+    }
+    
+    const isObject = (colonCount > 0 && colonCount >= commaCount) || 
+                     (commaCount > 0 && /^[\s\n]*[a-zA-Z_$][\w]*[\s\n]*,/.test(trimmed));
     
     return isObject;
 };
@@ -92,9 +110,27 @@ export const _findClosing = (text: string, start: number) => {
 export const _extractKey = (propertyText: string) => {
     const trimmed = propertyText.trim();
     
-    const colonMatch = trimmed.match(/^["']?([^:"'\s]+)["']?\s*:/);
+    // Handle regular key: value
+    const colonMatch = trimmed.match(/^["']?([^"'\s:]+)["']?\s*:/);
     if (colonMatch) return colonMatch[1];
     
+    // Handle computed properties [key]: value
+    const computedMatch = trimmed.match(/^\s*\[["']?([^"'\]]+)["']?\]\s*:/);
+    if (computedMatch) return computedMatch[1];
+    
+    // Handle method shorthand: method() { ... }
+    const methodMatch = trimmed.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\([^)]*\)\s*\{/);
+    if (methodMatch) return methodMatch[1];
+    
+    // Handle arrow functions: key: () => { ... } or key: async () => { ... }
+    const arrowFnMatch = trimmed.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*(async\s*)?\s*\([^)]*\)\s*=>/);
+    if (arrowFnMatch) return arrowFnMatch[1];
+    
+    // Handle regular function: key: function() { ... }
+    const functionMatch = trimmed.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:\s*function\s*\(/);
+    if (functionMatch) return functionMatch[1];
+    
+    // Simple shorthand (last resort)
     const shorthandMatch = trimmed.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)/);
     if (shorthandMatch) return shorthandMatch[1];
     
@@ -105,19 +141,18 @@ const _priority = (key: string) => {
     if (key.startsWith('__')) return -3;
     if (key === 'id') return -2;
     if (key === '_id') return -1;
+    if (key === 'constructor') return -4;
     return 0;
 };
 
 const _findPropertyRanges = (content: string) => {
-    const ranges: Array<{ start: number; end: number }> = [];
+    const ranges: Array<{ end: number; start: number }> = [];
     let depth = 0;
     let inString = false;
     let stringChar = '';
     let propStart = 0;
     
-    // Detect if this is an interface/type (uses semicolons) by checking if there are NO arrow functions or function keywords
-    const hasFunction = /=>|function\s*\(|\(\s*\)\s*=>/.test(content);
-    
+    // Skip initial whitespace
     while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
         propStart++;
     }
@@ -132,18 +167,15 @@ const _findPropertyRanges = (content: string) => {
         } else if (inString && c === stringChar && prev !== '\\') {
             inString = false;
         } else if (!inString) {
-            if (c === '{' || c === '[' || c === '(' || c === '<') depth++;
+            if (c === '{' || c === '[' || c === '(') depth++;
             if (c === '}' || c === ']' || c === ')') depth--;
-            if (c === '>' && prev !== '=') depth--;
             
-            // ONLY split on comma at depth 0
-            // ONLY split on semicolon at depth 0 if there are NO functions (interface/type)
-            const shouldSplit = depth === 0 && (c === ',' || (!hasFunction && c === ';'));
-            
-            if (shouldSplit) {
-                ranges.push({ start: propStart, end: i });
+            // Split on comma at depth 0 (object level)
+            if (depth === 0 && c === ',') {
+                ranges.push({ end: i, start: propStart });
                 
                 propStart = i + 1;
+                // Skip whitespace after comma
                 while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
                     propStart++;
                 }
@@ -151,13 +183,14 @@ const _findPropertyRanges = (content: string) => {
         }
     }
     
+    // Add the last property
     let propEnd = content.length;
     while (propEnd > propStart && /[\s\n]/.test(content[propEnd - 1])) {
         propEnd--;
     }
     
     if (propStart < propEnd) {
-        ranges.push({ start: propStart, end: propEnd });
+        ranges.push({ end: propEnd, start: propStart });
     }
     
     return ranges;
@@ -178,18 +211,21 @@ const _sortNestedObjects = (text: string): string => {
             const fullBlock = result.substring(i, end + 1);
             const content = fullBlock.substring(1, fullBlock.length - 1);
             
+            // Recursively sort nested objects first
+            const sortedNested = _sortNestedObjects(content);
+            let newBlock = '{' + sortedNested + '}';
+            
+            // Check if this block itself is an object literal that needs sorting
             if (_isObjectLiteral(content)) {
-                const sortedNested = _sortNestedObjects(content);
-                const sortedBlock = _sortBlock('{' + sortedNested + '}');
-                
-                if (sortedBlock !== fullBlock) {
-                    result = result.substring(0, i) + sortedBlock + result.substring(end + 1);
-                    i = i + sortedBlock.length;
-                    continue;
-                }
+                newBlock = _sortBlock(newBlock);
             }
             
-            i = end + 1;
+            if (newBlock !== fullBlock) {
+                result = result.substring(0, i) + newBlock + result.substring(end + 1);
+                i = i + newBlock.length;
+            } else {
+                i = end + 1;
+            }
         } else {
             i++;
         }
@@ -204,13 +240,13 @@ export const _sortBlock = (fullBlock: string) => {
     
     if (ranges.length <= 1) return fullBlock;
     
-    const properties: Array<{ text: string; key: string; range: { start: number; end: number } }> = [];
+    const properties: Array<{ key: string; range: { end: number; start: number }; text: string }> = [];
     
     ranges.forEach(range => {
         const text = content.substring(range.start, range.end);
         const key = _extractKey(text);
         if (key) {
-            properties.push({ text, key, range });
+            properties.push({ key, range, text });
         }
     });
     
@@ -290,7 +326,7 @@ const _getDepth = (text: string, pos: number) => {
 
 export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
     const edits: vscode.TextEdit[] = [];
-    const blocks: Array<{ start: number; end: number; depth: number }> = [];
+    const blocks: Array<{ depth: number; end: number; start: number }> = [];
     const ignorePositions = _findIgnoreComments(text);
     
     for (let i = 0; i < text.length; i++) {
@@ -304,15 +340,15 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
             if (!isSortable) continue;
             
             const depth = _getDepth(text, i);
-            blocks.push({ start: i, end, depth });
+            blocks.push({ depth, end, start: i });
         }
     }
     
     blocks.sort((a, b) => a.depth - b.depth);
     
-    const processedRanges: Array<{ start: number; end: number }> = [];
+    const processedRanges: Array<{ end: number; start: number }> = [];
     
-    blocks.forEach(({ start, end }) => {
+    blocks.forEach(({ end, start }) => {
         const isNested = processedRanges.some(r => start > r.start && end < r.end);
         if (isNested) return;
         
@@ -325,7 +361,7 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
                 new vscode.Range(document.positionAt(start), document.positionAt(end + 1)),
                 sortedBlock
             ));
-            processedRanges.push({ start, end });
+            processedRanges.push({ end, start });
         }
     });
     
@@ -336,7 +372,7 @@ export const _applyEdits = async (editor: vscode.TextEditor, edits: vscode.TextE
     await edits.reduce(async (promise, edit) => {
         await promise;
         await editor.edit(builder => builder.replace(edit.range, edit.newText), 
-            { undoStopBefore: false, undoStopAfter: false });
+            { undoStopAfter: false, undoStopBefore: false });
     }, Promise.resolve());
 };
 
@@ -349,7 +385,7 @@ export const activate = (context: vscode.ExtensionContext) => {
         const config = vscode.workspace.getConfiguration('objectSortAlphabetical');
         if (!config.get<boolean>('enabled', true) || !config.get<boolean>('sortOnSave', true)) return;
 
-        const supported = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'json', 'jsonc'];
+        const supported = ['vue', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'json', 'jsonc'];
         if (!supported.includes(document.languageId)) return;
 
         const editor = vscode.window.activeTextEditor;
