@@ -282,6 +282,32 @@ const alsoIgnored = { z: 1, a: 2 };
 const sortThis = { z: 1, a: 2 }; // becomes { a: 2, z: 1 }
 ```
 
+### ⚠️ Important Limitations
+
+- **Placement**: The ignore comment must be placed **outside** the object you want to ignore (before the opening `{`).
+- **Scope**: It ignores the **entire object** and all its nested properties.
+- **Nested Objects**: You cannot currently ignore a specific nested object if its parent is being sorted. The ignore comment must be on the **top-level** object to take effect.
+- **Individual Properties**: You cannot ignore specific properties inside a sorted object. The "ignore" applies to the whole block.
+
+```javascript
+
+// Following will be how ignore will work
+
+// auto-sort-ignore-next-line (whole object)
+const nestedIgnore = {
+    ignoredChild: {
+        // auto-sort-ignore-next-line (in same depth)
+        z: 1
+        a: 2,
+        c: 3
+    },
+    a: 1,
+    b: 2,
+};
+
+
+```
+
 ## Configuration
 
 Configure the extension in your VS Code settings:
