@@ -170,12 +170,21 @@ const _findPropertyRanges = (content: string) => {
             if (c === '{' || c === '[' || c === '(') depth++;
             if (c === '}' || c === ']' || c === ')') depth--;
             
-            // Split on comma at depth 0 (object level)
-            if (depth === 0 && c === ',') {
+            // Handle generics: <Type>
+            if (c === '<') {
+                const next = i < content.length - 1 ? content[i + 1] : '';
+                if (/^[a-zA-Z0-9_]/.test(next)) depth++;
+            }
+            if (c === '>') {
+                if (prev !== '=' && /^[a-zA-Z0-9_>]/.test(prev)) depth--;
+            }
+            
+            // Split on comma or semicolon at depth 0 (object level)
+            if (depth === 0 && (c === ',' || c === ';')) {
                 ranges.push({ end: i, start: propStart });
                 
                 propStart = i + 1;
-                // Skip whitespace after comma
+                // Skip whitespace after separator
                 while (propStart < content.length && /[\s\n]/.test(content[propStart])) {
                     propStart++;
                 }
