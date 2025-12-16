@@ -488,6 +488,12 @@ MIT
 
 **Why?** Inline comments (`value, // comment`) are part of the line structure, not the property value. Sorting them would violate our core principle of preserving exact formatting. If you need sorting with documentation, use standalone comments above properties instead.
 
+### 1.4.7
+
+**🛠️ Bug Fixes**
+
+  - ✅ Fixed: Class bodies are no longer processed for sorting
+
 ### 1.4.6
 
 **🛠️ Bug Fixes**

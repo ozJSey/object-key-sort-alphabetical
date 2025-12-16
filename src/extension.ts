@@ -8,6 +8,8 @@ export const _isObjectLiteral = (content: string) => {
     
     // Skip objects with inline comments
     if (/,\s*\/\//.test(trimmed)) return false;
+    // Skip objects with block comments
+    if (/\/\*[\s\S]*?\*\//.test(trimmed)) return false;
     
     let depth = 0;
     let inString = false;
@@ -78,6 +80,7 @@ export const _isSortableContext = (text: string, bracePos: number) => {
     if (/\b(import|export)\s*$/.test(lookback)) return true;
     if (/\binterface\s+\w+\s*$/.test(lookback)) return true;
     if (/\btype\s+\w+\s*=\s*$/.test(lookback)) return true;
+    if (/\bclass\s+\w+\s*$/.test(lookback)) return false;
     
     return false;
 };
