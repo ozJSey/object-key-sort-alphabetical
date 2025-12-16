@@ -488,6 +488,27 @@ MIT
 
 **Why?** Inline comments (`value, // comment`) are part of the line structure, not the property value. Sorting them would violate our core principle of preserving exact formatting. If you need sorting with documentation, use standalone comments above properties instead.
 
+### 1.4.6
+
+**🛠️ Bug Fixes**
+
+  - ✅ Fixed: What AI tried to fix...
+
+### 1.4.5
+
+**🛠️ Bug Fixes**
+
+- ✅ Fixed: Minor edge case with trailing commas in nested objects
+- ✅ Fixed: InString sorting and double curly braces are now going to be ignored 
+- 🧪 Added more unit tests for complex scenarios
+
+### 1.4.0 - 1.4.4
+
+**🛠️ Bug Fixes & Improvements**
+- ✅ Fixed: Edge cases with nested generics and complex types
+- ✅ Improved performance for large files
+- 🧪 Added more unit tests for complex scenarios
+
 ### 1.3.0 - 1.3.1
 
 **⚠️ REVERTED - Do not use these versions**

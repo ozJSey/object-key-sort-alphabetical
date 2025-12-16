@@ -208,8 +208,34 @@ const _findPropertyRanges = (content: string) => {
 const _sortNestedObjects = (text: string): string => {
     let result = text;
     let i = 0;
+    let inString = false;
+    let stringChar = '';
     
     while (i < result.length) {
+        const c = result[i];
+        const prev = i > 0 ? result[i - 1] : '';
+
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            stringChar = c;
+            i++;
+            continue;
+        } else if (inString && c === stringChar && prev !== '\\') {
+            inString = false;
+            i++;
+            continue;
+        }
+
+        if (inString) {
+            i++;
+            continue;
+        }
+
+        if (c === '{' && i + 1 < result.length && result[i + 1] === '{') {
+            i += 2;
+            continue;
+        }
+
         if (result[i] === '{') {
             const end = _findClosing(result, i);
             if (end === -1) {
@@ -338,7 +364,29 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
     const blocks: Array<{ depth: number; end: number; start: number }> = [];
     const ignorePositions = _findIgnoreComments(text);
     
+    let inString = false;
+    let stringChar = '';
+
     for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const prev = i > 0 ? text[i - 1] : '';
+
+        if (!inString && (c === '"' || c === "'" || c === '`')) {
+            inString = true;
+            stringChar = c;
+            continue;
+        } else if (inString && c === stringChar && prev !== '\\') {
+            inString = false;
+            continue;
+        }
+
+        if (inString) continue;
+
+        if (c === '{' && i + 1 < text.length && text[i + 1] === '{') {
+            i++;
+            continue;
+        }
+
         if (text[i] === '{') {
             const end = _findClosing(text, i);
             if (end === -1) continue;
