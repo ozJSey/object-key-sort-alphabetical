@@ -316,6 +316,11 @@ Configure the extension in your VS Code settings:
 {
   "objectSortAlphabetical.enabled": true,
   "objectSortAlphabetical.sortOnSave": true,
+  "objectSortAlphabetical.sortOrder": "asc",
+  "objectSortAlphabetical.caseSensitive": false,
+  "objectSortAlphabetical.priorityKeys": ["id", "_id", "constructor"],
+  "objectSortAlphabetical.supportedLanguages": ["javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json", "jsonc"],
+  "objectSortAlphabetical.excludePatterns": [],
   "objectSortAlphabetical.sortImports": true
 }
 ```
@@ -324,7 +329,18 @@ Configure the extension in your VS Code settings:
 
 - **`objectSortAlphabetical.enabled`** - Enable/disable the extension (default: `true`)
 - **`objectSortAlphabetical.sortOnSave`** - Sort objects when file is saved (default: `true`)
+- **`objectSortAlphabetical.sortOrder`** - Sort order: `"asc"` (A-Z) or `"desc"` (Z-A) (default: `"asc"`)
+- **`objectSortAlphabetical.caseSensitive`** - Use case-sensitive sorting (default: `false`)
+- **`objectSortAlphabetical.priorityKeys`** - Array of keys that should always appear first. Supports wildcards like `"__*"` for all keys starting with `__` (default: `["id", "_id", "constructor"]`)
+- **`objectSortAlphabetical.supportedLanguages`** - Array of language IDs where sorting should be applied (default: `["javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json", "jsonc"]`)
+- **`objectSortAlphabetical.excludePatterns`** - Array of glob patterns for files to exclude from sorting (e.g., `["*.test.ts", "generated/*"]`) (default: `[]`)
 - **`objectSortAlphabetical.sortImports`** - Sort named imports alphabetically (default: `true`)
+
+### Commands
+
+- **Object Sort Alphabetical: File: Save without Sorting** - Save the current file without triggering automatic sorting
+  - Access via Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
+  - Useful when you need to preserve specific ordering temporarily
 
 ## Supported Languages
 
@@ -476,6 +492,50 @@ Contributions are welcome! Please follow these steps:
 MIT
 
 ## Changelog
+
+### 1.5.0
+
+**🎉 Major Configuration Overhaul**
+
+**🎨 New Configuration Options:**
+- ✅ **Sort Order** - Choose ascending (`asc`) or descending (`desc`) sorting
+- ✅ **Case Sensitivity** - Control whether sorting is case-sensitive
+- ✅ **Custom Priority Keys** - Define your own priority keys with wildcard support (e.g., `__*`, `$*`)
+- ✅ **Language Support** - Configure which file types to process
+- ✅ **File Exclusions** - Glob patterns to exclude specific files or directories
+- ✅ **Dynamic Configuration** - All settings now read from user preferences
+
+**📦 New Commands:**
+- ✅ **Save without Sorting** - Added Command Palette command to save files without triggering sorting
+  - Access via `Cmd+Shift+P` → "Object Sort Alphabetical: File: Save without Sorting"
+  - Perfect for when you need to preserve specific ordering temporarily
+
+**⚡ Performance Improvements:**
+- ✅ **Smart Activation** - Extension now activates only when opening supported language files instead of on startup
+- ✅ **Better Resource Usage** - Reduced memory footprint and activation time
+- ✅ **Language-specific Loading** - Only loads for JS, TS, Vue, and JSON files
+
+**🛠️ Architecture Improvements:**
+- ✅ Centralized configuration management with `getConfig()`
+- ✅ Flexible pattern matching for file exclusions
+- ✅ More maintainable and extensible codebase
+- ✅ Better separation of concerns
+
+**📝 Examples:**
+```json
+// Descending sort with custom priorities
+{
+  "objectSortAlphabetical.sortOrder": "desc",
+  "objectSortAlphabetical.priorityKeys": ["id", "name", "__*"],
+  "objectSortAlphabetical.excludePatterns": ["*.test.ts", "generated/*"]
+}
+
+// Case-sensitive sorting for specific languages only
+{
+  "objectSortAlphabetical.caseSensitive": true,
+  "objectSortAlphabetical.supportedLanguages": ["typescript", "typescriptreact"]
+}
+```
 
 ### 1.3.5
 

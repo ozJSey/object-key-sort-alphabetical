@@ -1,7 +1,50 @@
 "use strict";
 import * as vscode from 'vscode';
+import * as path from 'path';
 
-// Improved structural detection that handles functions better
+interface SortConfig {
+    caseSensitive: boolean;
+    enabled: boolean;
+    excludePatterns: string[];
+    priorityKeys: string[];
+    sortImports: boolean;
+    sortOnSave: boolean;
+    sortOrder: 'asc' | 'desc';
+    supportedLanguages: string[];
+}
+
+const getConfig = (): SortConfig => {
+    const config = vscode.workspace.getConfiguration('objectSortAlphabetical');
+    return {
+        caseSensitive: config.get<boolean>('caseSensitive', false),
+        enabled: config.get<boolean>('enabled', true),
+        excludePatterns: config.get<string[]>('excludePatterns', []),
+        priorityKeys: config.get<string[]>('priorityKeys', ['id', '_id', 'constructor']),
+        sortImports: config.get<boolean>('sortImports', true),
+        sortOnSave: config.get<boolean>('sortOnSave', true),
+        sortOrder: config.get<'asc' | 'desc'>('sortOrder', 'asc'),
+        supportedLanguages: config.get<string[]>('supportedLanguages', 
+            ['javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'vue', 'json', 'jsonc'])
+    };
+};
+
+const matchesPattern = (filePath: string, patterns: string[]): boolean => {
+    if (!patterns || patterns.length === 0) return false;
+    
+    const fileName = path.basename(filePath);
+    const relativePath = vscode.workspace.asRelativePath(filePath);
+    
+    return patterns.some(pattern => {
+        // Simple glob matching
+        const regexPattern = pattern
+            .replace(/\./g, '\\.')
+            .replace(/\*/g, '.*')
+            .replace(/\?/g, '.');
+        const regex = new RegExp(`^${regexPattern}$`);
+        return regex.test(fileName) || regex.test(relativePath);
+    });
+};
+
 export const _isObjectLiteral = (content: string) => {
     const trimmed = content.trim();
     if (trimmed.length === 0) return false;
@@ -140,11 +183,20 @@ export const _extractKey = (propertyText: string) => {
     return null;
 };
 
-const _priority = (key: string) => {
-    if (key.startsWith('__')) return -3;
-    if (key === 'id') return -2;
-    if (key === '_id') return -1;
-    if (key === 'constructor') return -4;
+const _priority = (key: string, priorityKeys: string[]) => {
+    for (let i = 0; i < priorityKeys.length; i++) {
+        const priority = priorityKeys[i];
+        
+        // Support wildcard patterns like '__*'
+        if (priority.endsWith('*')) {
+            const prefix = priority.slice(0, -1);
+            if (key.startsWith(prefix)) {
+                return -(priorityKeys.length - i);
+            }
+        } else if (key === priority) {
+            return -(priorityKeys.length - i);
+        }
+    }
     return 0;
 };
 
@@ -208,7 +260,7 @@ const _findPropertyRanges = (content: string) => {
     return ranges;
 };
 
-const _sortNestedObjects = (text: string): string => {
+const _sortNestedObjects = (text: string, config: SortConfig): string => {
     let result = text;
     let i = 0;
     let inString = false;
@@ -250,12 +302,12 @@ const _sortNestedObjects = (text: string): string => {
             const content = fullBlock.substring(1, fullBlock.length - 1);
             
             // Recursively sort nested objects first
-            const sortedNested = _sortNestedObjects(content);
+            const sortedNested = _sortNestedObjects(content, config);
             let newBlock = '{' + sortedNested + '}';
             
             // Check if this block itself is an object literal that needs sorting
             if (_isObjectLiteral(content)) {
-                newBlock = _sortBlock(newBlock);
+                newBlock = _sortBlock(newBlock, config);
             }
             
             if (newBlock !== fullBlock) {
@@ -272,7 +324,7 @@ const _sortNestedObjects = (text: string): string => {
     return result;
 };
 
-export const _sortBlock = (fullBlock: string) => {
+export const _sortBlock = (fullBlock: string, config: SortConfig) => {
     const content = fullBlock.substring(1, fullBlock.length - 1);
     const ranges = _findPropertyRanges(content);
     
@@ -291,8 +343,14 @@ export const _sortBlock = (fullBlock: string) => {
     if (properties.length <= 1) return fullBlock;
     
     const sorted = [...properties].sort((a, b) => {
-        const diff = _priority(a.key) - _priority(b.key);
-        return diff !== 0 ? diff : a.key.localeCompare(b.key);
+        const priorityDiff = _priority(a.key, config.priorityKeys) - _priority(b.key, config.priorityKeys);
+        if (priorityDiff !== 0) return priorityDiff;
+        
+        const comparison = config.caseSensitive 
+            ? a.key.localeCompare(b.key)
+            : a.key.toLowerCase().localeCompare(b.key.toLowerCase());
+        
+        return config.sortOrder === 'desc' ? -comparison : comparison;
     });
     
     const isSorted = properties.every((p, i) => p.key === sorted[i].key);
@@ -362,7 +420,7 @@ const _getDepth = (text: string, pos: number) => {
     return depth;
 };
 
-export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) => {
+export const _findBlocksAndSort = (text: string, document: vscode.TextDocument, config: SortConfig) => {
     const edits: vscode.TextEdit[] = [];
     const blocks: Array<{ depth: number; end: number; start: number }> = [];
     const ignorePositions = _findIgnoreComments(text);
@@ -413,8 +471,8 @@ export const _findBlocksAndSort = (text: string, document: vscode.TextDocument) 
         if (isNested) return;
         
         const original = text.substring(start, end + 1);
-        const sorted = _sortNestedObjects(original.substring(1, original.length - 1));
-        const sortedBlock = _sortBlock('{' + sorted + '}');
+        const sorted = _sortNestedObjects(original.substring(1, original.length - 1), config);
+        const sortedBlock = _sortBlock('{' + sorted + '}', config);
         
         if (sortedBlock !== original) {
             edits.push(vscode.TextEdit.replace(
@@ -438,29 +496,59 @@ export const _applyEdits = async (editor: vscode.TextEditor, edits: vscode.TextE
 
 export const activate = (context: vscode.ExtensionContext) => {
     let isSorting = false;
+    let skipNextSort = false;
+
+    const saveWithoutSortingCommand = vscode.commands.registerCommand(
+        'objectSortAlphabetical.saveWithoutSorting',
+        async () => {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                vscode.window.showWarningMessage('No active editor');
+                return;
+            }
+
+            skipNextSort = true;
+            try {
+                await editor.document.save();
+            } finally {
+                // Reset flag after a short delay
+                setTimeout(() => {
+                    skipNextSort = false;
+                }, 100);
+            }
+        }
+    );
 
     const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
-        if (isSorting) return;
+        if (isSorting || skipNextSort) return;
 
-        const config = vscode.workspace.getConfiguration('objectSortAlphabetical');
-        if (!config.get<boolean>('enabled', true) || !config.get<boolean>('sortOnSave', true)) return;
+        const config = getConfig();
+        if (!config.enabled || !config.sortOnSave) return;
 
-        const supported = ['vue', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'json', 'jsonc'];
-        if (!supported.includes(document.languageId)) return;
+        // Check language support
+        if (!config.supportedLanguages.includes(document.languageId)) return;
+
+        // Check file exclusion patterns
+        if (matchesPattern(document.uri.fsPath, config.excludePatterns)) return;
 
         const editor = vscode.window.activeTextEditor;
         if (!editor || editor.document.uri.toString() !== document.uri.toString()) return;
 
-        const edits = _findBlocksAndSort(document.getText(), document);
+        const edits = _findBlocksAndSort(document.getText(), document, config);
         if (!edits.length) return;
 
         isSorting = true;
-        await _applyEdits(editor, edits);
-        await document.save();
-        isSorting = false;
+        try {
+            await _applyEdits(editor, edits);
+            await document.save();
+        } catch (error) {
+            console.error('Error sorting objects:', error);
+        } finally {
+            isSorting = false;
+        }
     });
 
-    context.subscriptions.push(saveListener);
+    context.subscriptions.push(saveListener, saveWithoutSortingCommand);
 };
 
 export const deactivate = () => {};

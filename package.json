@@ -1,11 +1,24 @@
 {
   "activationEvents": [
-    "onStartupFinished"
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescriptreact",
+    "onLanguage:vue",
+    "onLanguage:json",
+    "onLanguage:jsonc"
   ],
   "categories": [
     "Formatters"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "objectSortAlphabetical.saveWithoutSorting",
+        "title": "File: Save without sorting",
+        "category": "Object Sort Alphabetical"
+      }
+    ],
     "configuration": {
       "properties": {
         "objectSortAlphabetical.enabled": {
@@ -13,14 +26,53 @@
           "description": "Enable automatic sorting of object properties on save",
           "type": "boolean"
         },
-        "objectSortAlphabetical.sortImports": {
-          "default": true,
-          "description": "Sort named imports alphabetically",
-          "type": "boolean"
-        },
         "objectSortAlphabetical.sortOnSave": {
           "default": true,
           "description": "Sort objects when file is saved",
+          "type": "boolean"
+        },
+        "objectSortAlphabetical.sortOrder": {
+          "default": "asc",
+          "description": "Sort order for object keys",
+          "enum": ["asc", "desc"],
+          "enumDescriptions": [
+            "Ascending (A to Z)",
+            "Descending (Z to A)"
+          ],
+          "type": "string"
+        },
+        "objectSortAlphabetical.caseSensitive": {
+          "default": false,
+          "description": "Use case-sensitive sorting",
+          "type": "boolean"
+        },
+        "objectSortAlphabetical.priorityKeys": {
+          "default": ["id", "_id", "constructor"],
+          "description": "Keys that should always appear first (in order). Use prefix patterns like '__*' for all keys starting with '__'",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "objectSortAlphabetical.supportedLanguages": {
+          "default": ["javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json", "jsonc"],
+          "description": "Language IDs where sorting should be applied",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "objectSortAlphabetical.excludePatterns": {
+          "default": [],
+          "description": "Glob patterns for files to exclude from sorting",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "objectSortAlphabetical.sortImports": {
+          "default": true,
+          "description": "Sort named imports alphabetically",
           "type": "boolean"
         }
       },
@@ -63,5 +115,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "1.4.7"
+  "version": "1.5.0"
 }
