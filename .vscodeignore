@@ -10,12 +10,16 @@ vsc-extension-quickstart.md
 **/*.ts
 assets/icon.svg
 assets/demo.gif
-out/debug-props.js
-out/debug-simple.js
+out/__tests__/**
+out/debug-*.js
 out/test-runner.js
 MANUAL_INLINE_TEST.ts
 MANUAL_TEST_REAL_WORLD.ts
 MANUAL-TEST.ts
+MANUAL_TEST.ts
 test-*.ts
 *.spec.ts
+node_modules/**
+*.vsix
+.claude/**
 

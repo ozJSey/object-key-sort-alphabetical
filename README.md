@@ -318,7 +318,8 @@ Configure the extension in your VS Code settings:
   "objectSortAlphabetical.sortOnSave": true,
   "objectSortAlphabetical.sortOrder": "asc",
   "objectSortAlphabetical.caseSensitive": false,
-  "objectSortAlphabetical.priorityKeys": ["id", "_id", "constructor"],
+  "objectSortAlphabetical.enablePriorityKeys": true,
+  "objectSortAlphabetical.priorityKeys": ["__typename", "type", "id", "_id"],
   "objectSortAlphabetical.supportedLanguages": ["javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json", "jsonc"],
   "objectSortAlphabetical.excludePatterns": [],
   "objectSortAlphabetical.sortImports": true
@@ -331,7 +332,8 @@ Configure the extension in your VS Code settings:
 - **`objectSortAlphabetical.sortOnSave`** - Sort objects when file is saved (default: `true`)
 - **`objectSortAlphabetical.sortOrder`** - Sort order: `"asc"` (A-Z) or `"desc"` (Z-A) (default: `"asc"`)
 - **`objectSortAlphabetical.caseSensitive`** - Use case-sensitive sorting (default: `false`)
-- **`objectSortAlphabetical.priorityKeys`** - Array of keys that should always appear first. Supports wildcards like `"__*"` for all keys starting with `__` (default: `["id", "_id", "constructor"]`)
+- **`objectSortAlphabetical.enablePriorityKeys`** - Enable priority sorting for special keys. Set to `false` for pure alphabetical sorting (default: `true`)
+- **`objectSortAlphabetical.priorityKeys`** - Array of keys that should always appear first. Supports wildcards like `"__*"` for all keys starting with `__` (default: `["__typename", "type", "id", "_id"]`)
 - **`objectSortAlphabetical.supportedLanguages`** - Array of language IDs where sorting should be applied (default: `["javascript", "typescript", "javascriptreact", "typescriptreact", "vue", "json", "jsonc"]`)
 - **`objectSortAlphabetical.excludePatterns`** - Array of glob patterns for files to exclude from sorting (e.g., `["*.test.ts", "generated/*"]`) (default: `[]`)
 - **`objectSortAlphabetical.sortImports`** - Sort named imports alphabetically (default: `true`)
@@ -350,18 +352,20 @@ Configure the extension in your VS Code settings:
 
 ## 🎯 How It Works
 
-We use the **"apartment building" approach**:
+We use **TypeScript's Compiler API** for AST-based parsing combined with the **"apartment building" approach**:
 
-1. **Identify the structure** - Find all the commas, newlines, spaces (the "apartment")
-2. **Extract the content** - Get just the property names and values (the "people")
-3. **Sort the content** - Reorder by key name with priority rules
-4. **Swap in place** - Put sorted content back, keeping structure intact
+1. **Parse with AST** - TypeScript compiler understands your code structure natively
+2. **Identify sortable nodes** - Objects, interfaces, types, imports detected accurately
+3. **Extract property boundaries** - AST gives us exact positions
+4. **Sort the content** - Reorder by key name with priority rules
+5. **Swap in place** - Put sorted content back, keeping structure intact
 
 This means:
 - ✅ Your formatting stays **exactly** as you wrote it
 - ✅ No conflicts with Prettier, ESLint, or other formatters
 - ✅ Works with any coding style (spaces, tabs, newlines, semicolons)
 - ✅ Handles multiline values, arrow functions, complex types
+- ✅ Accurate detection - no regex guessing, the compiler knows what's an object
 
 ## 📋 What Gets Sorted vs. Protected
 
@@ -492,6 +496,48 @@ Contributions are welcome! Please follow these steps:
 MIT
 
 ## Changelog
+
+### 2.0.1
+
+**🎛️ Priority Keys Enhancement**
+
+- ✅ **Added `type` to priority keys** - Now prioritizes `__typename`, `type`, `id`, `_id` by default
+- ✅ **New `enablePriorityKeys` option** - Set to `false` for pure alphabetical sorting without priority keys
+- 🐛 **Fixed nested object sorting** - Resolved "Overlapping ranges" error when sorting nested objects
+
+**Configuration:**
+```json
+{
+  "objectSortAlphabetical.enablePriorityKeys": false  // Pure alphabetical
+}
+```
+
+### 2.0.0
+
+**🚀 Major Architecture Overhaul - AST-Based Parsing**
+
+This release completely rewrites the core parsing engine using TypeScript's Compiler API instead of regex-based detection.
+
+**🏗️ Architecture Changes:**
+- ✅ **AST-Based Parsing** - Now uses TypeScript Compiler API (`ts.createSourceFile`) for accurate syntax understanding
+- ✅ **Modular Codebase** - Split from single 550-line file into 5 focused modules:
+  - `types.ts` - Shared interfaces
+  - `config.ts` - Configuration handling
+  - `parser.ts` - AST parsing logic
+  - `sorter.ts` - Sorting and edit creation
+  - `extension.ts` - VSCode integration
+- ✅ **Accurate Detection** - No more regex guessing; the TypeScript compiler knows exactly what's an object, interface, import, etc.
+- ✅ **Same Format Preservation** - Still uses the "apartment building" swap technique, just with AST-identified boundaries
+
+**🎯 Why AST?**
+- More reliable detection of sortable constructs
+- Proper handling of edge cases (strings, comments, nested structures)
+- Accurate distinction between object literals, interfaces, imports, and class bodies
+- Foundation for future enhancements
+
+**📦 Package Size:**
+- Optimized `.vscodeignore` to exclude test files and debug utilities
+- Cleaner production bundle
 
 ### 1.5.0
 
