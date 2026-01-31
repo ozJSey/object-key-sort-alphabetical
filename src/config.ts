@@ -9,7 +9,7 @@ export function getConfig(): SortConfig {
         enabled: config.get<boolean>('enabled', true),
         enablePriorityKeys: config.get<boolean>('enablePriorityKeys', true),
         excludePatterns: config.get<string[]>('excludePatterns', []),
-        priorityKeys: config.get<string[]>('priorityKeys', ['__typename', 'type', 'id', '_id']),
+        priorityKeys: config.get<string[]>('priorityKeys', ['id', '_id', '__typename', 'type']),
         sortImports: config.get<boolean>('sortImports', true),
         sortOnSave: config.get<boolean>('sortOnSave', true),
         sortOrder: config.get<'asc' | 'desc'>('sortOrder', 'asc'),

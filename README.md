@@ -497,6 +497,14 @@ MIT
 
 ## Changelog
 
+### 2.2.0
+
+**🔧 Architecture Change - Back to TypeScript Compiler API**
+
+- ✅ **Switched back to TypeScript Compiler API** - Replaced @babel/parser with TypeScript for better AST parsing and compatibility
+- ✅ **Bundled TypeScript** - Extension now includes TypeScript runtime, works on any Mac without separate installation
+- ✅ **Corrected priority order** - Fixed priority keys to: `id`, `_id`, `__typename`, `type`
+
 ### 2.0.1
 
 **🎛️ Priority Keys Enhancement**
