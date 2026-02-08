@@ -497,6 +497,14 @@ MIT
 
 ## Changelog
 
+### 2.3.0
+
+**🔧 Trailing Delimiter Fix**
+
+- ✅ **Fixed trailing delimiter normalization** - Objects and interfaces without a trailing `,` or `;` on the last property now sort correctly without producing syntax errors
+- ✅ **Preserves user style** - If you use trailing commas, they stay. If you don't, they won't be added
+- ✅ **Handles all delimiter styles** - Works with `;` in interfaces, `,` in objects, and even `,` in interfaces (valid TypeScript)
+
 ### 2.2.0
 
 **🔧 Architecture Change - Back to TypeScript Compiler API**

@@ -14,9 +14,9 @@
   "contributes": {
     "commands": [
       {
+        "category": "Object Sort Alphabetical",
         "command": "objectSortAlphabetical.saveWithoutSorting",
-        "title": "File: Save without sorting",
-        "category": "Object Sort Alphabetical"
+        "title": "File: Save without sorting"
       }
     ],
     "configuration": {
@@ -140,5 +140,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "2.2.0"
+  "version": "2.3.0"
 }

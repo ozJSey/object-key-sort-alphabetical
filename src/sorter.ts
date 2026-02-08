@@ -239,6 +239,25 @@ function swapProperties(
     sorted: PropertyInfo[],
     blockStart: number
 ): string {
+    // Normalize trailing delimiters (; in interfaces/types, , in type literals)
+    // For objects/imports, commas live in the gaps so no normalization is needed
+    const delimRegex = /[,;]\s*$/;
+    const propsWithDelim = original.filter(p => delimRegex.test(p.text));
+
+    if (propsWithDelim.length > 0) {
+        const delimType = propsWithDelim[0].text.match(/([,;])\s*$/)![1];
+        const lastHasDelimiter = delimRegex.test(original[original.length - 1].text);
+
+        sorted = sorted.map((prop, idx) => {
+            let text = prop.text.replace(/[,;]\s*$/, '');
+            const isLast = idx === sorted.length - 1;
+            if (!isLast || lastHasDelimiter) {
+                text += delimType;
+            }
+            return { ...prop, text };
+        });
+    }
+
     const relativeProps = original.map((prop, idx) => ({
         relStart: prop.start - blockStart,
         relEnd: prop.end - blockStart,
