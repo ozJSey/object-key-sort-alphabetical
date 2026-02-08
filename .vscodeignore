@@ -12,6 +12,8 @@ assets/icon.svg
 assets/demo.gif
 out/__tests__/**
 out/debug-*.js
+__mocks__/**
+jest.config.js
 out/test-runner.js
 MANUAL_INLINE_TEST.ts
 MANUAL_TEST_REAL_WORLD.ts
