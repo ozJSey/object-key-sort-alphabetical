@@ -1,5 +1,23 @@
 import * as ts from 'typescript';
-import { SortableNode, PropertyInfo, SortConfig } from './types';
+import { SortableNode, PropertyInfo, SortConfig, ScriptBlock } from './types';
+
+export function extractScriptBlocks(text: string): ScriptBlock[] | null {
+    const blocks: ScriptBlock[] = [];
+    const openTag = /<script[^>]*>/gi;
+    const closeTag = /<\/script>/gi;
+
+    let match;
+    while ((match = openTag.exec(text)) !== null) {
+        const contentStart = match.index + match[0].length;
+        closeTag.lastIndex = contentStart;
+        const close = closeTag.exec(text);
+        if (close) {
+            blocks.push({ contentStart, contentEnd: close.index });
+        }
+    }
+
+    return blocks.length > 0 ? blocks : null;
+}
 
 export function parseDocument(text: string, fileName: string): ts.SourceFile {
     return ts.createSourceFile(

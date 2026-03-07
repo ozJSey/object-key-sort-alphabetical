@@ -28,3 +28,8 @@ export interface PropertyInfo {
     end: number;
     text: string;
 }
+
+export interface ScriptBlock {
+    contentStart: number;
+    contentEnd: number;
+}

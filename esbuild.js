@@ -7,7 +7,7 @@ esbuild.build({
   external: ['vscode'],
   format: 'cjs',
   platform: 'node',
-  minify: false,
+  minify: true,
   sourcemap: true,
   loader: {
     '.js': 'js',

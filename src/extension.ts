@@ -1,7 +1,7 @@
 "use strict";
 import * as vscode from 'vscode';
 import { getConfig, matchesPattern } from './config';
-import { parseDocument, findSortableNodes } from './parser';
+import { parseDocument, findSortableNodes, extractScriptBlocks } from './parser';
 import { createEdits, applyEdits } from './sorter';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -42,12 +42,31 @@ export function activate(context: vscode.ExtensionContext) {
         if (!editor || editor.document.uri.toString() !== document.uri.toString()) return;
 
         const text = document.getText();
-        const sourceFile = parseDocument(text, document.fileName);
-        const sortableNodes = findSortableNodes(sourceFile, config);
+        const scriptBlocks = extractScriptBlocks(text);
 
-        if (sortableNodes.length === 0) return;
+        let allEdits: vscode.TextEdit[] = [];
 
-        const edits = createEdits(sortableNodes, text, document, config);
+        if (scriptBlocks) {
+            for (const block of scriptBlocks) {
+                const scriptContent = text.substring(block.contentStart, block.contentEnd);
+                const sourceFile = parseDocument(scriptContent, document.fileName);
+                const sortableNodes = findSortableNodes(sourceFile, config);
+
+                if (sortableNodes.length === 0) continue;
+
+                const edits = createEdits(sortableNodes, scriptContent, document, config, block.contentStart);
+                allEdits.push(...edits);
+            }
+        } else {
+            const sourceFile = parseDocument(text, document.fileName);
+            const sortableNodes = findSortableNodes(sourceFile, config);
+
+            if (sortableNodes.length > 0) {
+                allEdits = createEdits(sortableNodes, text, document, config);
+            }
+        }
+
+        const edits = allEdits;
         if (edits.length === 0) return;
 
         isSorting = true;

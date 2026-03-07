@@ -7,7 +7,8 @@ export function createEdits(
     nodes: SortableNode[],
     text: string,
     document: vscode.TextDocument,
-    config: SortConfig
+    config: SortConfig,
+    offset: number = 0
 ): vscode.TextEdit[] {
     const edits: vscode.TextEdit[] = [];
 
@@ -15,8 +16,8 @@ export function createEdits(
         const sorted = sortNodeWithNested(node, text, config);
         if (sorted !== null) {
             const range = new vscode.Range(
-                document.positionAt(node.start),
-                document.positionAt(node.end)
+                document.positionAt(node.start + offset),
+                document.positionAt(node.end + offset)
             );
             edits.push(vscode.TextEdit.replace(range, sorted));
         }
